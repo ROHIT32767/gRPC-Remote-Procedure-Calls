@@ -1,0 +1,55 @@
+Write code in python for the below task. Give code for each py file required for the task.
+
+You have to implement a basic client-server system where the focus will be on load-balancing.
+Load balancing is essentially the process of distributing computational load between multiple computers
+or processors. This is done to avoid overloading at a single server while other servers are idle. There are
+multiple options when you want to implement a load balancer; we will use look-aside load balancing
+(also known as one-armed balancing)
+
+Look-Aside Load Balancing
+In this type of load balancing, every client asks the load balancing server(let’s call it LB server), which
+server(s) they should use. The LB server is thus easily able to implement any complex load balancing it
+wants. Clients query the lookaside LB and the LB responds with best server(s) to use. The heavy lifting of
+keeping server state and implementation of LB algorithm is consolidated in the lookaside LB. gRPC defines
+a protocol for communication between client and LB using this model
+
+
+Load Balancing Policies
+3 different load balancing strategies have to be implemented in the LB server:
+•Pick First: Selects the first available server from the list.
+•Round Robin: Distributes requests cyclically among available servers.
+•Least Load: Route requests to the server with the lowest current load (Use few servers with CPU
+heavy tasks for testing)
+
+Servers: Servers handle client requests and perform computational tasks. They register with the LB server and
+periodically report their status (load, availability, etc.). For dynamic server discovery at the LB server,
+existing service discovery clients such as etcd can be used to maintain an updated list of available backend
+servers
+
+Clients: Clients send computational requests and query the LB server to determine which backend server to use
+
+Load Balancer: The LB server receives client queries and responds with the most suitable backend server(s) based on the
+chosen balancing policy. The discovery of the LB server itself can be managed using service discovery
+mechanisms like DNS-based service discovery, etcd, or Consul, ensuring that clients always have
+access to an up-to-date LB endpoint
+
+Tasks
+1. Define appropriate services and RPCs using gRPC. Explain your choices in the report.
+2. Implement a Look-Aside Load Balancer server that:
+•Maintains a list of available servers and their load status.
+2
+•Implements load balancing policies mentioned in Load Balancing policies
+•Responds to client queries with the best available server.
+3. Implement the backend servers that:
+•Register with the LB server.
+•Periodically report their load status.
+•Handle client requests.
+4. Implement the client that:
+•Queries the LB server for the best server.
+•Sends computational requests to the selected server.
+5. Scale test the system using multiple clients and servers.
+•Simulate high request loads with multiple concurrent clients.
+•Evaluate the performance of three load balancing policies: Pick First, Round Robin, and Least
+Load.
+•Measure response time, server utilization, and system throughput.
+•Analyze how effectively the system distributes load under different scenarios
