@@ -4,22 +4,32 @@ import load_balancer_pb2_grpc
 import time
 import threading
 from concurrent import futures
+import etcd3
 
 class BackendServer:
     def __init__(self, address):
         self.address = address
         self.cpu_load = 0.0
+        self.etcd = etcd3.client()  # Connect to etcd
+        self.lease = self.etcd.lease(10)  # Create a lease with a TTL of 10 seconds
 
-    def register_with_load_balancer(self):
-        channel = grpc.insecure_channel('localhost:50051')
-        stub = load_balancer_pb2_grpc.LoadBalancerStub(channel)
-        response = stub.RegisterServer(load_balancer_pb2.ServerRegistration(server_address=self.address))
-        if response.success:
-            print(f"Server {self.address} registered with Load Balancer")
-        else:
-            print("Failed to register with Load Balancer")
+    def register_with_etcd(self):
+        """Register the server with etcd using a lease."""
+        self.etcd.put(f"/servers/{self.address}", self.address, lease=self.lease)
+        print(f"Server {self.address} registered with etcd")
+
+    def keep_alive(self):
+        """Periodically refresh the lease to keep the server registered."""
+        while True:
+            try:
+                self.lease.refresh()
+                time.sleep(5)  # Refresh every 5 seconds
+            except Exception as e:
+                print(f"Failed to refresh lease: {e}")
+                break
 
     def report_load(self):
+        """Periodically report the server's load to the load balancer."""
         channel = grpc.insecure_channel('localhost:50051')
         stub = load_balancer_pb2_grpc.LoadBalancerStub(channel)
         while True:
@@ -27,16 +37,19 @@ class BackendServer:
             time.sleep(5)
 
     def handle_request(self, request, context):
-        # Simulate CPU load
+        """Handle client requests and simulate CPU load."""
         self.cpu_load += 0.1
         time.sleep(1)  # Simulate processing time
         self.cpu_load -= 0.1
         return f"Processed request {request} on server {self.address}"
 
 def serve():
-    server_address = 'localhost:50054'  # Change this for multiple servers
+    server_address = 'localhost:50053'  # Change this for multiple servers
     backend_server = BackendServer(server_address)
-    backend_server.register_with_load_balancer()
+    backend_server.register_with_etcd()
+
+    # Start a thread to keep the server registered in etcd
+    threading.Thread(target=backend_server.keep_alive, daemon=True).start()
 
     # Start a thread to report load periodically
     threading.Thread(target=backend_server.report_load, daemon=True).start()

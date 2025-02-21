@@ -1,4 +1,4 @@
-Write code in python for the below task. Give code for each py file required for the task.
+Write code in python for the below task. Give code for each file required for the task.
 
 You have to implement a basic client-server system where the focus will be on load-balancing.
 Load balancing is essentially the process of distributing computational load between multiple computers
@@ -53,3 +53,5 @@ Tasks
 Load.
 •Measure response time, server utilization, and system throughput.
 •Analyze how effectively the system distributes load under different scenarios
+
+The code should work for Successfully simulating a multi-client, multi-server test case
