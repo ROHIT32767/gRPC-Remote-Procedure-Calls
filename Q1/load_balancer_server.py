@@ -14,17 +14,44 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
         self.load_balancing_policy = load_balancing_policy
         self.etcd = etcd3.client()  # Connect to etcd
 
-        # Start a thread to periodically update the list of available servers from etcd
-        threading.Thread(target=self.update_servers_from_etcd, daemon=True).start()
+        # Start a thread for dynamic server discovery
+        threading.Thread(target=self.watch_servers, daemon=True).start()
 
-    def update_servers_from_etcd(self):
+        # Start a thread to periodically fetch CPU loads
+        threading.Thread(target=self.get_load, daemon=True).start()
+
+    def watch_servers(self):
         """Periodically fetch the list of available servers from etcd."""
         while True:
-            with self.lock:
-                servers = self.etcd.get_prefix("/servers/")
-                self.servers = {key.decode('utf-8').split('/')[-1]: 0.0 for key, _ in servers}
+            try:
+                with self.lock:
+                    # Fetch all servers registered in etcd
+                    servers = self.etcd.get_prefix('/servers/')
+                    # Update the servers dictionary with the latest list of servers
+                    self.servers = {key.decode('utf-8').split('/')[-1]: 0.0 for key, _ in servers}
                 print(f"Available servers: {list(self.servers.keys())}")
-            time.sleep(5)  
+                time.sleep(5)  # Update every 5 seconds
+            except Exception as e:
+                print(f"Failed to fetch server list: {e}")
+                break
+
+    def get_load(self):
+        """Periodically fetch the CPU load of each server from etcd."""
+        while True:
+            try:
+                with self.lock:
+                    # Fetch the CPU load for each server
+                    for server_address in list(self.servers.keys()):  # Use a copy of keys to avoid runtime errors
+                        load_key = f"/servers/{server_address}/load"
+                        load_value = self.etcd.get(load_key)
+                        if load_value:
+                            cpu_load = float(load_value[0].decode('utf-8'))
+                            self.servers[server_address] = cpu_load
+                            print(f"Updated load for server {server_address}: {cpu_load}")
+                time.sleep(5)  # Fetch loads every 5 seconds
+            except Exception as e:
+                print(f"Failed to fetch server loads: {e}")
+                break
 
     def GetServer(self, request, context):
         with self.lock:
@@ -32,15 +59,25 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
                 context.set_code(grpc.StatusCode.UNAVAILABLE)
                 context.set_details('No servers available')
                 return load_balancer_pb2.ServerResponse()
-            
+
+            # Implement different load balancing policies
             if self.load_balancing_policy == "Pick First":
                 server = list(self.servers.keys())[0]
             elif self.load_balancing_policy == "Round Robin":
+                if not self.servers:  # Check if servers list is empty
+                    context.set_code(grpc.StatusCode.UNAVAILABLE)
+                    context.set_details('No servers available')
+                    return load_balancer_pb2.ServerResponse()
+                # Check if the current index is out of range
                 if self.current_index >= len(self.servers):
                     self.current_index = 0
+                if self.current_index < 0:
+                    self.current_index = len(self.servers) - 1
+                # Check if the server is still in the list
+                while list(self.servers.keys())[self.current_index] not in self.servers:
+                    self.current_index = (self.current_index + 1) % len(self.servers)
                 server = list(self.servers.keys())[self.current_index]
                 self.current_index = (self.current_index + 1) % len(self.servers)
-
             elif self.load_balancing_policy == "Least Load":
                 server = min(self.servers.keys(), key=lambda k: self.servers[k])
 

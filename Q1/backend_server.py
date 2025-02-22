@@ -5,6 +5,7 @@ import time
 import threading
 from concurrent import futures
 import etcd3
+import psutil
 import argparse
 
 class BackendServer:
@@ -30,19 +31,29 @@ class BackendServer:
                 break
 
     def report_load(self):
-        """Periodically report the server's load to the load balancer."""
-        channel = grpc.insecure_channel('localhost:50051')
-        stub = load_balancer_pb2_grpc.LoadBalancerStub(channel)
+        """Periodically report the server's load to etcd."""
         while True:
-            stub.ReportLoad(load_balancer_pb2.LoadReport(server_address=self.address, cpu_load=self.cpu_load))
-            time.sleep(5)
+            try:
+                self.cpu_load = self.get_cpu_usage()  # Measure CPU usage
+                self.etcd.put(f"/servers/{self.address}/load", str(self.cpu_load), lease=self.lease)
+                print(f"Reported load for server {self.address}: {self.cpu_load}")
+                time.sleep(5)  # Report every 5 seconds
+            except Exception as e:
+                print(f"Failed to report load: {e}")
+                break
+
+    def get_cpu_usage(self):
+        """Measure the CPU usage of the current process."""
+        return psutil.cpu_percent(interval=1)  # Measure CPU usage over 1 second
 
     def handle_request(self, request, context):
-        """Handle client requests and simulate CPU load."""
-        self.cpu_load += 0.1
-        time.sleep(1)  # Simulate processing time
-        self.cpu_load -= 0.1
-        return f"Processed request {request} on server {self.address}"
+        """Handle client requests and simulate a CPU-heavy task."""
+        # Simulate a CPU-heavy task: calculate the sum of numbers up to n
+        n = 10000000  # Adjust this value to control the task's intensity
+        total = 0
+        for i in range(n):
+            total += i
+        return f"Processed request {request} on server {self.address}. Sum: {total}"
 
 def serve(port_id):
     server_address = 'localhost:' + port_id
@@ -65,6 +76,6 @@ def serve(port_id):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Backend Server with gRPC')
-    parser.add_argument('--server_id', type=str, required=True, help='Unique server ID')
+    parser.add_argument('--server_id', type=str, required=True, help='Unique server ID (port number)')
     args = parser.parse_args()
     serve(args.server_id)

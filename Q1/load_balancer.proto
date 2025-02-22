@@ -8,6 +8,7 @@ service LoadBalancer {
   rpc ReportLoad (LoadReport) returns (LoadReportResponse) {}
 }
 
+
 message ClientRequest {
   string client_id = 1;
 }
@@ -32,3 +33,5 @@ message LoadReport {
 message LoadReportResponse {
   bool success = 1;
 }
+
+
