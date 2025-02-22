@@ -5,6 +5,7 @@ import time
 import threading
 from concurrent import futures
 import etcd3
+import argparse
 
 class BackendServer:
     def __init__(self, address):
@@ -43,8 +44,8 @@ class BackendServer:
         self.cpu_load -= 0.1
         return f"Processed request {request} on server {self.address}"
 
-def serve():
-    server_address = 'localhost:50053'  # Change this for multiple servers
+def serve(port_id):
+    server_address = 'localhost:' + port_id
     backend_server = BackendServer(server_address)
     backend_server.register_with_etcd()
 
@@ -63,4 +64,7 @@ def serve():
     server.wait_for_termination()
 
 if __name__ == '__main__':
-    serve()
+    parser = argparse.ArgumentParser(description='Backend Server with gRPC')
+    parser.add_argument('--server_id', type=str, required=True, help='Unique server ID')
+    args = parser.parse_args()
+    serve(args.server_id)

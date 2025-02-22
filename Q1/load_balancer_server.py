@@ -21,10 +21,10 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
         """Periodically fetch the list of available servers from etcd."""
         while True:
             with self.lock:
-                # Get all servers registered in etcd
                 servers = self.etcd.get_prefix("/servers/")
                 self.servers = {key.decode('utf-8').split('/')[-1]: 0.0 for key, _ in servers}
-            time.sleep(5)  # Update every 5 seconds
+                print(f"Available servers: {list(self.servers.keys())}")
+            time.sleep(5)  
 
     def GetServer(self, request, context):
         with self.lock:
@@ -32,13 +32,15 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
                 context.set_code(grpc.StatusCode.UNAVAILABLE)
                 context.set_details('No servers available')
                 return load_balancer_pb2.ServerResponse()
-
-            # Implement different load balancing policies
+            
             if self.load_balancing_policy == "Pick First":
                 server = list(self.servers.keys())[0]
             elif self.load_balancing_policy == "Round Robin":
+                if self.current_index >= len(self.servers):
+                    self.current_index = 0
                 server = list(self.servers.keys())[self.current_index]
                 self.current_index = (self.current_index + 1) % len(self.servers)
+
             elif self.load_balancing_policy == "Least Load":
                 server = min(self.servers.keys(), key=lambda k: self.servers[k])
 
