@@ -21,14 +21,18 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
         threading.Thread(target=self.get_load, daemon=True).start()
 
     def watch_servers(self):
-        """Periodically fetch the list of available servers from etcd."""
+        """Watch for changes in etcd to maintain an updated list of servers."""
+        print("Watching etcd for server updates...")
         while True:
             try:
                 with self.lock:
-                    # Fetch all servers registered in etcd
+                    # Fetch all servers registered in etcd under /servers/
                     servers = self.etcd.get_prefix('/servers/')
                     # Update the servers dictionary with the latest list of servers
-                    self.servers = {key.decode('utf-8').split('/')[-1]: 0.0 for key, _ in servers}
+                    self.servers = {
+                        key.decode('utf-8').split('/')[-1]: 0.0
+                        for key, _ in servers
+                    }
                 print(f"Available servers: {list(self.servers.keys())}")
                 time.sleep(5)  # Update every 5 seconds
             except Exception as e:
@@ -40,9 +44,9 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
         while True:
             try:
                 with self.lock:
-                    # Fetch the CPU load for each server
+                    # Fetch the CPU load for each server under /loads/
                     for server_address in list(self.servers.keys()):  # Use a copy of keys to avoid runtime errors
-                        load_key = f"/servers/{server_address}/load"
+                        load_key = f"/loads/{server_address}"
                         load_value = self.etcd.get(load_key)
                         if load_value:
                             cpu_load = float(load_value[0].decode('utf-8'))
@@ -81,6 +85,7 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
             elif self.load_balancing_policy == "Least Load":
                 server = min(self.servers.keys(), key=lambda k: self.servers[k])
 
+            print(f"Client {request.client_id} assigned to server {server}")
             return load_balancer_pb2.ServerResponse(server_address=server)
 
     def ReportLoad(self, request, context):

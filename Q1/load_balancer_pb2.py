@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13load_balancer.proto\x12\rload_balancer\"\"\n\rClientRequest\x12\x11\n\tclient_id\x18\x01 \x01(\t\"(\n\x0eServerResponse\x12\x16\n\x0eserver_address\x18\x01 \x01(\t\",\n\x12ServerRegistration\x12\x16\n\x0eserver_address\x18\x01 \x01(\t\"\'\n\x14RegistrationResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"6\n\nLoadReport\x12\x16\n\x0eserver_address\x18\x01 \x01(\t\x12\x10\n\x08\x63pu_load\x18\x02 \x01(\x02\"%\n\x12LoadReportResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32\x84\x02\n\x0cLoadBalancer\x12J\n\tGetServer\x12\x1c.load_balancer.ClientRequest\x1a\x1d.load_balancer.ServerResponse\"\x00\x12Z\n\x0eRegisterServer\x12!.load_balancer.ServerRegistration\x1a#.load_balancer.RegistrationResponse\"\x00\x12L\n\nReportLoad\x12\x19.load_balancer.LoadReport\x1a!.load_balancer.LoadReportResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13load_balancer.proto\x12\rload_balancer\"\"\n\rClientRequest\x12\x11\n\tclient_id\x18\x01 \x01(\t\"(\n\x0eServerResponse\x12\x16\n\x0eserver_address\x18\x01 \x01(\t\",\n\x12ServerRegistration\x12\x16\n\x0eserver_address\x18\x01 \x01(\t\"\'\n\x14RegistrationResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"6\n\nLoadReport\x12\x16\n\x0eserver_address\x18\x01 \x01(\t\x12\x10\n\x08\x63pu_load\x18\x02 \x01(\x02\"%\n\x12LoadReportResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"1\n\x0bTaskRequest\x12\x0f\n\x07task_id\x18\x01 \x01(\t\x12\x11\n\ttask_type\x18\x02 \x01(\t\"\x1e\n\x0cTaskResponse\x12\x0e\n\x06result\x18\x01 \x01(\t2\x84\x02\n\x0cLoadBalancer\x12J\n\tGetServer\x12\x1c.load_balancer.ClientRequest\x1a\x1d.load_balancer.ServerResponse\"\x00\x12Z\n\x0eRegisterServer\x12!.load_balancer.ServerRegistration\x1a#.load_balancer.RegistrationResponse\"\x00\x12L\n\nReportLoad\x12\x19.load_balancer.LoadReport\x1a!.load_balancer.LoadReportResponse\"\x00\x32S\n\x07\x42\x61\x63kend\x12H\n\x0bProcessTask\x12\x1a.load_balancer.TaskRequest\x1a\x1b.load_balancer.TaskResponse\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -43,6 +43,12 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_LOADREPORT']._serialized_end=257
   _globals['_LOADREPORTRESPONSE']._serialized_start=259
   _globals['_LOADREPORTRESPONSE']._serialized_end=296
-  _globals['_LOADBALANCER']._serialized_start=299
-  _globals['_LOADBALANCER']._serialized_end=559
+  _globals['_TASKREQUEST']._serialized_start=298
+  _globals['_TASKREQUEST']._serialized_end=347
+  _globals['_TASKRESPONSE']._serialized_start=349
+  _globals['_TASKRESPONSE']._serialized_end=379
+  _globals['_LOADBALANCER']._serialized_start=382
+  _globals['_LOADBALANCER']._serialized_end=642
+  _globals['_BACKEND']._serialized_start=644
+  _globals['_BACKEND']._serialized_end=727
 # @@protoc_insertion_point(module_scope)

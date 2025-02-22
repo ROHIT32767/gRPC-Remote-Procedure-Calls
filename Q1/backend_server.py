@@ -35,7 +35,7 @@ class BackendServer:
         while True:
             try:
                 self.cpu_load = self.get_cpu_usage()  # Measure CPU usage
-                self.etcd.put(f"/servers/{self.address}/load", str(self.cpu_load), lease=self.lease)
+                self.etcd.put(f"/loads/{self.address}", str(self.cpu_load), lease=self.lease)
                 print(f"Reported load for server {self.address}: {self.cpu_load}")
                 time.sleep(5)  # Report every 5 seconds
             except Exception as e:
@@ -46,14 +46,31 @@ class BackendServer:
         """Measure the CPU usage of the current process."""
         return psutil.cpu_percent(interval=1)  # Measure CPU usage over 1 second
 
-    def handle_request(self, request, context):
-        """Handle client requests and simulate a CPU-heavy task."""
-        # Simulate a CPU-heavy task: calculate the sum of numbers up to n
+    def handle_simple_task(self, request):
+        """Handle a simple task."""
+        return f"Processed simple task {request} on server {self.address}"
+
+    def handle_cpu_heavy_task(self, request):
+        """Handle a CPU-heavy task."""
         n = 10000000  # Adjust this value to control the task's intensity
         total = 0
         for i in range(n):
             total += i
-        return f"Processed request {request} on server {self.address}. Sum: {total}"
+        return f"Processed CPU-heavy task {request} on server {self.address}. Sum: {total}"
+
+class BackendServicer(load_balancer_pb2_grpc.BackendServicer):
+    def __init__(self, backend_server):
+        self.backend_server = backend_server
+
+    def ProcessTask(self, request, context):
+        """Process a task based on the task type."""
+        if request.task_type == "SIMPLE":
+            result = self.backend_server.handle_simple_task(request.task_id)
+        elif request.task_type == "CPU_HEAVY":
+            result = self.backend_server.handle_cpu_heavy_task(request.task_id)
+        else:
+            result = f"Unknown task type: {request.task_type}"
+        return load_balancer_pb2.TaskResponse(result=result)
 
 def serve(port_id):
     server_address = 'localhost:' + port_id
@@ -68,7 +85,7 @@ def serve(port_id):
 
     # Create a gRPC server for handling client requests
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    # Add your backend server's service implementation here (if needed)
+    load_balancer_pb2_grpc.add_BackendServicer_to_server(BackendServicer(backend_server), server)
     server.add_insecure_port(server_address)
     server.start()
     print(f"Backend Server running on {server_address}...")
