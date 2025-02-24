@@ -30,16 +30,18 @@ class BackendServer:
                 print(f"Failed to refresh lease: {e}")
                 break
 
-    def report_load(self):
-        """Periodically report the server's load to etcd."""
+    def report_load_to_lb(self):
+        """Periodically report the server's load to the Load Balancer via gRPC."""
+        lb_channel = grpc.insecure_channel('localhost:50051')
+        lb_stub = load_balancer_pb2_grpc.LoadBalancerStub(lb_channel)
         while True:
             try:
-                self.cpu_load = self.get_cpu_usage()  # Measure CPU usage
-                self.etcd.put(f"/loads/{self.address}", str(self.cpu_load), lease=self.lease)
+                self.cpu_load = self.get_cpu_usage()
+                lb_stub.ReportLoad(load_balancer_pb2.LoadReport(server_address=self.address, cpu_load=self.cpu_load))
                 print(f"Reported load for server {self.address}: {self.cpu_load}")
-                time.sleep(5)  # Report every 5 seconds
+                time.sleep(5)
             except Exception as e:
-                print(f"Failed to report load: {e}")
+                print(f"Failed to report load to LB: {e}")
                 break
 
     def get_cpu_usage(self):
@@ -80,8 +82,8 @@ def serve(port_id):
     # Start a thread to keep the server registered in etcd
     threading.Thread(target=backend_server.keep_alive, daemon=True).start()
 
-    # Start a thread to report load periodically
-    threading.Thread(target=backend_server.report_load, daemon=True).start()
+    # Start a thread to report load periodically to LB
+    threading.Thread(target=backend_server.report_load_to_lb, daemon=True).start()
 
     # Create a gRPC server for handling client requests
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

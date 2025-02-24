@@ -17,9 +17,6 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
         # Start a thread for dynamic server discovery
         threading.Thread(target=self.watch_servers, daemon=True).start()
 
-        # Start a thread to periodically fetch CPU loads
-        threading.Thread(target=self.get_load, daemon=True).start()
-
     def watch_servers(self):
         """Watch for changes in etcd to maintain an updated list of servers."""
         print("Watching etcd for server updates...")
@@ -37,24 +34,6 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
                 time.sleep(5)  # Update every 5 seconds
             except Exception as e:
                 print(f"Failed to fetch server list: {e}")
-                break
-
-    def get_load(self):
-        """Periodically fetch the CPU load of each server from etcd."""
-        while True:
-            try:
-                with self.lock:
-                    # Fetch the CPU load for each server under /loads/
-                    for server_address in list(self.servers.keys()):  # Use a copy of keys to avoid runtime errors
-                        load_key = f"/loads/{server_address}"
-                        load_value = self.etcd.get(load_key)
-                        if load_value:
-                            cpu_load = float(load_value[0].decode('utf-8'))
-                            self.servers[server_address] = cpu_load
-                            print(f"Updated load for server {server_address}: {cpu_load}")
-                time.sleep(5)  # Fetch loads every 5 seconds
-            except Exception as e:
-                print(f"Failed to fetch server loads: {e}")
                 break
 
     def GetServer(self, request, context):
@@ -92,6 +71,7 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
         with self.lock:
             if request.server_address in self.servers:
                 self.servers[request.server_address] = request.cpu_load
+                print(f"Server {request.server_address} reported load: {request.cpu_load}")
             return load_balancer_pb2.LoadReportResponse(success=True)
 
 def serve():
