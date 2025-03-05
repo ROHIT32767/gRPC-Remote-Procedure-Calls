@@ -1,0 +1,71 @@
+Write code in go for the below task and Give code for each file required for each of the subtasks
+
+MapReduce is a programming model and an associated implementation for processing and generating large
+data sets. Users specify a map function that processes a key/value pair to generate a set of intermediate
+key/value pairs, and a reduce function that merges all intermediate values associated with the same
+intermediate key .In this problem, you need to implement a distributed MapReduce that will call applications Map and
+Reduce and handles reading and writing of files, along with a master process which will give tasks to the
+workers.
+
+Note: For the scope of this problem, you do not need to handle master or worker failures.
+
+Components
+
+Master: The master node is responsible for assigning Map and Reduce tasks to the worker nodes. It will also
+monitor the progress of the different tasks along with handling worker failures. The entire data flow across
+the Map and Reduce tasks is also handled by the Master.
+
+Workers: Worker nodes execute tasks assigned by the master. Each worker can be a Mapper or a Reducer. The
+worker reads input data and applies the Map function. It will store intermediate key/value pairs and keep
+the master informed. It will also fetch assigned data and apply the Reduce function, finally writing the
+output.
+
+Tasks
+
+The system will be having a single Master and every task would be parallelized between the Workers.
+The number of mapper and reducer tasks will be specified through the CLI while running the code. You
+will be implementing the following MapReduce tasks:
+
+Sub Task 1- Word Count
+Each Mapper reads an input file and produces (word, count) pairs. The Reducer aggregates counts for
+the same word and outputs the final word count.
+
+Sub Task 2- Inverted Index
+Inverted indices are widely used in computer science, and are particularly useful in document searching.
+Broadly speaking, an inverted index is a map from interesting facts about the underlying data, to the
+original location of that data. For example, in the context of search, it can be a map from keywords
+to documents that contain those words. For this task, each Mapper reads a file and produces (word,
+filename) pairs. The Reducer aggregates all filenames where the word appears and outputs (word,
+[list of filenames]). 
+
+Sub Task 3 - Distributed MapReduce
+You will be using multiple worker processes for the scope of this task. This will ensure that the
+computational tasks are run in parallel. To coordinate the parallel execution of tasks, you should use a
+separate master process, which hands out work to the workers and waits for them to finish. The master
+should only communicate with the workers via gRPC. (You can employ command design pattern if needed)
+
+Important Notes:
+•You will be using gRPC for defining various tasks across the scope of this problem. 
+•The map phase should divide the intermediate keys into buckets for numReduce reduce tasks, where
+numReduce is the number of reduce tasks.
+•Each Mapper should create numReduce intermediate files for consumption by the Reduce tasks.
+•The worker implementation should put the output of the X’th reduce task in separate intermediate
+output files.
+•The intermediate output file should contain one line per Reduce function output in an appropriate
+key/value format. You can keep these temporary file names unique so that you don’t have to keep
+removing them during every run.
+•The worker should put intermediate Map output in files in the current directory, where it can later
+read them as input to Reduce tasks.
+•When a job is completed, the worker processes should exit
+
+I/O Format
+The numReduce tasks should be kept as a CLI argument.
+
+The workers are separate processes. The master(or coordinator) is a separate process as well.
+Initially, you can output the individual reducer outputs and later combine the outputs in a single output file as well.
+The number of mappers depends on the input split, and number of reducers has to be specified. You can consider for ease of implementation that each file will have a separate mapper task.
+Give modular code for each subtask with proper design choices
+
+
+python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. mapper_service.proto
+python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. reducer_service.proto
