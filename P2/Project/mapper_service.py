@@ -96,8 +96,8 @@ class MapperServiceServicer(mapper_pb2_grpc.MapperServiceServicer):
             file_names = sorted(request.input_split_files)
             # Assumption1: Two tables and two columns for input
             # Assumption2: One column name is common
-            table1 = pd.read_csv(request.input_location + "/" + file_names[0], sep=", ", engine='python')
-            table2 = pd.read_csv(request.input_location + "/" + file_names[1], sep=", ", engine='python')
+            table1 = pd.read_csv(request.input_location + "/" + file_names[0], sep=", ", engine='python3')
+            table2 = pd.read_csv(request.input_location + "/" + file_names[1], sep=", ", engine='python3')
             common_column = list(table2.columns.intersection(table1.columns))[0]
             table1_map, table1_col = self._naturalJoinMapCreator(table1, common_column)
             table2_map, table2_col = self._naturalJoinMapCreator(table2, common_column)
