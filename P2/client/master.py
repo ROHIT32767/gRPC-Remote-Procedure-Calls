@@ -157,6 +157,17 @@ class Master:
     def reduce(self, intermediate_file_locations):
         with ThreadPool() as pool:
             pool.starmap(self.reduceFunction, [(intermediate_file_locations, item) for item in self.reducers.items()])
+    
+    def aggregate_reducer_outputs(self):
+        final_output_path = os.path.join(self.output_location, "final_output.txt")
+        with open(final_output_path, "w") as final_output_file:
+            for reducer_name in self.reducers.keys():
+                reducer_output_path = os.path.join(self.output_location, reducer_name)
+                if os.path.exists(reducer_output_path):
+                    with open(reducer_output_path, "r") as reducer_output_file:
+                        final_output_file.write(reducer_output_file.read())
+                    # os.remove(reducer_output_path)  # Optionally, remove the individual reducer output file after aggregation
+        print(f"Aggregated final output written to {final_output_path}")
 
 
 if __name__ == '__main__':
@@ -182,3 +193,4 @@ if __name__ == '__main__':
     master.reduce(map_intermediate_location)
     time.sleep(20)
     master.terminate_reducers(reducers_process)
+    master.aggregate_reducer_outputs()  # Call the new method to aggregate reducer outputs
