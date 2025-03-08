@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+service ByzantineService {
+    rpc SendOrder (OrderRequest) returns (OrderResponse);
+    rpc ForwardOrder (ForwardRequest) returns (ForwardResponse);
+    rpc GetOrders (GetOrdersRequest) returns (GetOrdersResponse); // New method
+}
+
+message OrderRequest {
+    string order = 1;
+    int32 sender_id = 2;
+}
+
+message OrderResponse {
+    bool success = 1;
+}
+
+message ForwardRequest {
+    string order = 1;
+    int32 sender_id = 2;
+    int32 round = 3;
+}
+
+message ForwardResponse {
+    bool success = 1;
+}
+
+message GetOrdersRequest {
+    // No fields needed for this request
+}
+
+message GetOrdersResponse {
+    repeated string orders = 1; // List of orders collected by the server
+}
