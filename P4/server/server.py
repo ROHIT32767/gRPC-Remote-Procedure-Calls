@@ -20,6 +20,7 @@ class ByzantineServer(byzantine_pb2_grpc.ByzantineServiceServicer):
         order = request.order
         sender_id = request.sender_id
         print(f"Node {self.node_id} received order '{order}' from Node {sender_id}")
+        print(f"Node {self.node_id} is traitor: {self.is_traitor}")
         if self.is_traitor:
             order = "Retreat" if order == "Attack" else "Attack"  # Traitor changes the order
         self.orders.append(order)

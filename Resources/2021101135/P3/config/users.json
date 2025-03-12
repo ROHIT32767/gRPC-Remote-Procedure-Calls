@@ -1,0 +1,10 @@
+{
+    "alice": {
+      "password": "password123",
+      "accounts": ["bank1-1234"]
+    },
+    "bob": {
+      "password": "password567",
+      "accounts": ["bank2-5678"]
+    }
+  }

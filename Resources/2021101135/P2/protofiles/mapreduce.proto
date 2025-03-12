@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+service Master {
+  rpc GetTask(TaskRequest) returns (TaskAssignment);  // Workers request tasks
+  rpc SubmitTask(TaskResult) returns (TaskAck);       // Workers submit results
+}
+
+message TaskRequest {
+  string worker_id = 1;
+}
+
+message TaskAssignment {
+  string task_type = 1;      // "map" / "reduce" / "wait"
+  repeated string input_files = 2;
+  int32 task_id = 3;         // Unique task identifier
+  int32 num_reduce = 4;      // Number of reduce tasks
+}
+
+message TaskResult {
+  string task_type = 1;
+  int32 task_id = 2;
+  repeated string output_files = 3;
+}
+
+message TaskAck {
+  bool success = 1;
+}

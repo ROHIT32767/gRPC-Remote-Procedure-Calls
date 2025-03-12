@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+service LoadBalancer {
+  rpc RegisterServer(ServerRegistration) returns (RegistrationResponse);
+  rpc GetServer(ClientRequest) returns (ServerResponse);
+  rpc ReportLoad(LoadUpdate) returns (RegistrationResponse);
+}
+
+service Compute {
+  rpc ProcessTask(TaskRequest) returns (TaskResponse);
+}
+
+message ServerRegistration {
+  string server_id = 1;
+  string address = 2;
+}
+
+message LoadUpdate {
+  string server_id = 1;
+  int32 load = 2;
+}
+
+message RegistrationResponse {
+  bool success = 1;
+}
+
+message ClientRequest {}
+
+message ServerResponse {
+  string server_address = 1;
+}
+
+message TaskRequest {
+  string data = 1;
+}
+
+message TaskResponse {
+  string result = 1;
+}

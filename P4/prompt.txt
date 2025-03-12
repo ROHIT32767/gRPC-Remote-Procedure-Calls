@@ -34,7 +34,6 @@ refines the shared knowledge and eliminates uncertainty caused by traitorous gen
 •Rounds 4 to t + 1: Continued Propagation
 – Messages continue to be exchanged among generals to refine collective agreement.
 – Honest generals converge on the same decision using majority voting.
-10
 •Final Decision: Consensus
 – After t + 1 rounds, each general finalizes a decision.
 – The majority result determines the action (e.g., ”Attack” or ”Retreat”).

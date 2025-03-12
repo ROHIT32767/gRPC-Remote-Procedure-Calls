@@ -1,0 +1,6 @@
+{
+    "alice": {
+        "password": "password123",
+        "accounts": ["bank1-1234"]
+    }
+}
