@@ -49,6 +49,11 @@ class PaymentGatewayStub(object):
                 request_serializer=payment__pb2.GatewayBalanceRequest.SerializeToString,
                 response_deserializer=payment__pb2.GatewayBalanceResponse.FromString,
                 _registered_method=True)
+        self.Ping = channel.unary_unary(
+                '/PaymentGateway/Ping',
+                request_serializer=payment__pb2.PingRequest.SerializeToString,
+                response_deserializer=payment__pb2.PingResponse.FromString,
+                _registered_method=True)
 
 
 class PaymentGatewayServicer(object):
@@ -75,6 +80,13 @@ class PaymentGatewayServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Ping(self, request, context):
+        """For connectivity check
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_PaymentGatewayServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -92,6 +104,11 @@ def add_PaymentGatewayServicer_to_server(servicer, server):
                     servicer.GetBalance,
                     request_deserializer=payment__pb2.GatewayBalanceRequest.FromString,
                     response_serializer=payment__pb2.GatewayBalanceResponse.SerializeToString,
+            ),
+            'Ping': grpc.unary_unary_rpc_method_handler(
+                    servicer.Ping,
+                    request_deserializer=payment__pb2.PingRequest.FromString,
+                    response_serializer=payment__pb2.PingResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -175,6 +192,33 @@ class PaymentGateway(object):
             '/PaymentGateway/GetBalance',
             payment__pb2.GatewayBalanceRequest.SerializeToString,
             payment__pb2.GatewayBalanceResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Ping(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/PaymentGateway/Ping',
+            payment__pb2.PingRequest.SerializeToString,
+            payment__pb2.PingResponse.FromString,
             options,
             channel_credentials,
             insecure,

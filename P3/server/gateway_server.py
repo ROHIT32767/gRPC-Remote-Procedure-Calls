@@ -92,6 +92,12 @@ class GatewayServer(payment_pb2_grpc.PaymentGatewayServicer):
     def _get_bank(self, account_number):
         bank_name = account_number.split("-")[0]
         return self.banks[bank_name]
+    
+    def Ping(self, request, context):
+        """
+        Respond to a Ping request to check connectivity.
+        """
+        return payment_pb2.PingResponse(message="Pong")
 
 def serve():
     server_credentials = grpc.ssl_server_credentials(

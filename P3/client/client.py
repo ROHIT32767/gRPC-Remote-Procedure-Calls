@@ -3,22 +3,43 @@ import uuid
 import logging
 import os
 import sys
+import argparse
+import threading
+import time
+
 protofiles_path = os.path.join(os.path.dirname(__file__), "..", "protofiles")
 sys.path.append(protofiles_path)
 import payment_pb2, payment_pb2_grpc
-import argparse
 
 class Client:
-    def __init__(self,port):
+    def __init__(self, port):
+        self.port = port
+        self.token = None
+        self.pending_payments = []
+        self.offline = False  
+        self.lock = threading.Lock()  
+        self.channel = None
+        self.stub = None
+        self._reconnect()
+        self.connectivity_thread = threading.Thread(target=self._check_connectivity, daemon=True)
+        self.connectivity_thread.start()
+        self.retry_thread = threading.Thread(target=self._retry_pending_payments, daemon=True)
+        self.retry_thread.start()
+
+    def _reconnect(self):
+        """
+        Recreate the gRPC channel and stub.
+        """
+        if self.channel:
+            self.channel.close()  
         self.channel = grpc.secure_channel(
-            "localhost:" + str(port),
+            f"localhost:{self.port}",
             grpc.ssl_channel_credentials(
                 root_certificates=open('../certificates/ca.crt', 'rb').read()
             ),
             options=[('grpc.ssl_target_name_override', 'localhost')]
         )
         self.stub = payment_pb2_grpc.PaymentGatewayStub(self.channel)
-        self.token = None
 
     def login(self, username, password):
         try:
@@ -34,7 +55,10 @@ class Client:
             logger.error(f"Login error: {e.details()}")
             return False
 
-    def send_payment(self, from_acc, to_acc, amount):
+    def _send_payment_impl(self, from_acc, to_acc, amount):
+        """
+        Internal implementation to send a payment.
+        """
         txn_id = str(uuid.uuid4())
         try:
             response = self.stub.ProcessPayment(payment_pb2.PaymentRequest(
@@ -52,6 +76,18 @@ class Client:
             logger.error(f"Payment error: {e.details()}")
             return False
 
+    def send_payment(self, from_acc, to_acc, amount):
+        """
+        Send a payment. If offline, queue the payment for later retry.
+        """
+        if self.offline:
+            with self.lock:
+                self.pending_payments.append((from_acc, to_acc, amount))
+            logger.info(f"Payment queued (offline): From: {from_acc}, To: {to_acc}, Amount: {amount}")
+            return False
+        else:
+            return self._send_payment_impl(from_acc, to_acc, amount)
+
     def get_balance(self, username):
         try:
             # Call the GetBalance method on the gateway server
@@ -64,6 +100,39 @@ class Client:
                 logger.error(f"No accounts found for user: {username}")
         except grpc.RpcError as e:
             logger.error(f"Error fetching balance: {e.details()}")
+
+    def _check_connectivity(self):
+        """
+        Periodically check connectivity to the gateway server using the Ping method.
+        """
+        while True:
+            try:
+                response = self.stub.Ping(payment_pb2.PingRequest(message="Ping"))
+                if self.offline:
+                    logger.info("Reconnected to the gateway server.")
+                self.offline = False
+            except grpc.RpcError as e:
+                if not self.offline:
+                    logger.warning("Offline: Unable to connect to the gateway server.")
+                self.offline = True
+                self._reconnect()
+            time.sleep(5)  
+
+    def _retry_pending_payments(self):
+        """
+        Periodically retry pending payments when the server is back online.
+        """
+        while True:
+            if not self.offline and self.pending_payments:
+                with self.lock:
+                    payments_to_retry = self.pending_payments.copy()
+                    self.pending_payments.clear()
+
+                for payment in payments_to_retry:
+                    logger.info(f"Retrying payment: From: {payment[0]}, To: {payment[1]}, Amount: {payment[2]}")
+                    self._send_payment_impl(*payment)
+            time.sleep(5)  # Check every 5 seconds
+
 
 def run_tests(port=50053):
     client = Client(port)
@@ -92,6 +161,7 @@ def run_tests(port=50053):
         elif command == "exit":
             break
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Payment Client')
     parser.add_argument('--port', type=int, required=True, help='Port number to connect to')
@@ -101,8 +171,8 @@ if __name__ == '__main__':
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
-            logging.FileHandler(log_file_name),  
-            logging.StreamHandler()  
+            logging.FileHandler(log_file_name),
+            logging.StreamHandler()
         ]
     )
     logger = logging.getLogger(__name__)

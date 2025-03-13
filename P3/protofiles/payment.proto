@@ -4,6 +4,7 @@ service PaymentGateway {
   rpc Login(LoginRequest) returns (LoginResponse);     // Authentication
   rpc ProcessPayment(PaymentRequest) returns (PaymentResponse); // 2PC payment
   rpc GetBalance(GatewayBalanceRequest) returns (GatewayBalanceResponse); // For user balance
+  rpc Ping(PingRequest) returns (PingResponse); // For connectivity check
 }
 
 service Bank {
@@ -72,4 +73,13 @@ message BankBalanceRequest {
 
 message BankBalanceResponse {
   double balance = 1; // Balance of the account
+}
+
+// New messages for Ping
+message PingRequest {
+  string message = 1; // Optional message for debugging
+}
+
+message PingResponse {
+  string message = 1; // Response message
 }
