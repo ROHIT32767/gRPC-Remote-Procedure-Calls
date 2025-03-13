@@ -65,6 +65,30 @@ class GatewayServer(payment_pb2_grpc.PaymentGatewayServicer):
             self.pending_txns[request.transaction_id] = False
             return payment_pb2.PaymentResponse(success=False)
 
+    def GetBalance(self, request, context):
+        user = self.users.get(request.username)
+        if not user:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return payment_pb2.BalanceResponse()
+        
+        accounts = user.get("accounts", [])
+        balances = {}
+        for account in accounts:
+            bank_name = account.split("-")[0]
+            bank = self.banks.get(bank_name)
+            if bank:
+                try:
+                    creds = grpc.ssl_channel_credentials(root_certificates=open('../certificates/ca.crt', 'rb').read())
+                    channel = grpc.secure_channel(bank["address"], creds)
+                    stub = payment_pb2_grpc.BankStub(channel)
+                    # Call the GetBalance method on the bank server
+                    response = stub.GetBalance(payment_pb2.BalanceRequest(account_number=account))
+                    balances[account] = response.balance
+                except Exception as e:
+                    print(f"Error fetching balance for account {account}: {str(e)}")
+                    balances[account] = -1  # Indicate error
+        return payment_pb2.BalanceResponse(accounts=balances)
+
     def _get_bank(self, account_number):
         bank_name = account_number.split("-")[0]
         return self.banks[bank_name]

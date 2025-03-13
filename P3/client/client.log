@@ -1,0 +1,41 @@
+2025-03-13 13:41:37,957 - INFO - Running Test 1: Valid login
+2025-03-13 13:41:37,966 - INFO - Login successful for user: alice
+2025-03-13 13:41:37,966 - INFO - Test 1 passed: Login successful
+2025-03-13 13:41:37,966 - INFO - Running Test 2: Invalid login
+2025-03-13 13:41:37,968 - ERROR - Login error: 
+2025-03-13 13:41:37,968 - INFO - Test 2 passed: Invalid login handled correctly
+2025-03-13 13:41:37,968 - INFO - Running Test 3: Valid payment
+2025-03-13 13:41:38,000 - INFO - Payment successful: 9f633f08-ccb0-4962-afbf-702026355cac, From: bank1-1234, To: bank2-5678, Amount: 100.0
+2025-03-13 13:41:38,000 - INFO - Test 3 passed: Payment successful
+2025-03-13 13:41:38,000 - INFO - Running Test 4: Insufficient funds
+2025-03-13 13:41:38,021 - ERROR - Payment failed: 51c31ddf-bb46-4f48-97c0-639dfba573bf, From: bank1-1234, To: bank2-5678, Amount: 10000.0
+2025-03-13 13:41:38,021 - INFO - Test 4 passed: Insufficient funds handled correctly
+2025-03-13 13:41:38,021 - INFO - Running Test 5: Invalid account
+2025-03-13 13:41:38,044 - ERROR - Payment failed: 02a7aaeb-d1ea-4b8b-a886-27f441720101, From: bank1-9999, To: bank2-5678, Amount: 100.0
+2025-03-13 13:41:38,044 - INFO - Test 5 passed: Invalid account handled correctly
+2025-03-13 13:53:21,972 - INFO - Running Test 1: Valid login
+2025-03-13 13:53:21,984 - INFO - Login successful for user: alice
+2025-03-13 13:53:21,985 - INFO - Test 1 passed: Login successful
+2025-03-13 13:53:21,985 - INFO - Running Test 2: Invalid login
+2025-03-13 13:53:21,986 - ERROR - Login error: 
+2025-03-13 13:53:21,986 - INFO - Test 2 passed: Invalid login handled correctly
+2025-03-13 13:53:21,986 - INFO - Running Test 3: Get Balance
+2025-03-13 13:53:21,987 - ERROR - Error fetching balance: Method not found!
+2025-03-13 13:53:21,987 - INFO - Running Test 4: Valid payment
+2025-03-13 13:53:22,012 - INFO - Payment successful: d5732508-515f-4035-af95-b0d78cf3df25, From: bank1-1234, To: bank2-5678, Amount: 100.0
+2025-03-13 13:53:22,012 - INFO - Test 4 passed: Payment successful
+2025-03-13 13:53:22,012 - INFO - Running Test 5: Get Balance after payment
+2025-03-13 13:53:22,012 - ERROR - Error fetching balance: Method not found!
+2025-03-13 13:53:22,012 - INFO - Running Test 6: Insufficient funds
+2025-03-13 13:53:22,035 - ERROR - Payment failed: 16cb5d5e-f9c1-4b86-ad1f-d4a979af5217, From: bank1-1234, To: bank2-5678, Amount: 10000.0
+2025-03-13 13:53:22,035 - INFO - Test 6 passed: Insufficient funds handled correctly
+2025-03-13 13:53:22,035 - INFO - Running Test 7: Invalid account
+2025-03-13 13:53:22,057 - ERROR - Payment failed: 1392b5de-3d42-445c-b120-378ceddbf945, From: bank1-9999, To: bank2-5678, Amount: 100.0
+2025-03-13 13:53:22,057 - INFO - Test 7 passed: Invalid account handled correctly
+2025-03-13 14:02:20,461 - INFO - Running Test 1: Valid login
+2025-03-13 14:02:20,475 - INFO - Login successful for user: alice
+2025-03-13 14:02:20,475 - INFO - Test 1 passed: Login successful
+2025-03-13 14:02:20,475 - INFO - Running Test 2: Invalid login
+2025-03-13 14:02:20,477 - ERROR - Login error: 
+2025-03-13 14:02:20,477 - INFO - Test 2 passed: Invalid login handled correctly
+2025-03-13 14:02:20,477 - INFO - Running Test 3: Get Balance
