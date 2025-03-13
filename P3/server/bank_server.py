@@ -56,11 +56,13 @@ class BankServer(payment_pb2_grpc.BankServicer):
 
     def GetBalance(self, request, context):
         account_number = request.account_number
+        print(f"\n[Bank] GetBalance received for account {account_number}")
         if account_number in self.accounts:
-            return payment_pb2.BalanceResponse(balance=self.accounts[account_number])
+            print(f"Balance for account {account_number}: {self.accounts[account_number]}")
+            return payment_pb2.BankBalanceResponse(balance=self.accounts[account_number])
         else:
             context.set_code(grpc.StatusCode.NOT_FOUND)
-            return payment_pb2.BalanceResponse()
+            return payment_pb2.BankBalanceResponse()
 
     def _load_accounts(self, bank_name):
         with open(f'../config/{bank_name}_accounts.json') as f:

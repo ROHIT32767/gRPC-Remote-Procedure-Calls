@@ -2,5 +2,9 @@
     "alice": {
         "password": "password123",
         "accounts": ["bank1-1234", "bank2-5678"]
+    },
+    "bob": {
+        "password": "password567",
+        "accounts": ["bank1-2345", "bank2-6789"]
     }
 }

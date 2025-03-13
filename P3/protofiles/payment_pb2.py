@@ -24,13 +24,15 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rpayment.proto\"2\n\x0cLoginRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"\x1e\n\rLoginResponse\x12\r\n\x05token\x18\x01 \x01(\t\"b\n\x0ePaymentRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\x12\x14\n\x0c\x66rom_account\x18\x02 \x01(\t\x12\x12\n\nto_account\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x01\"\"\n\x0fPaymentResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"b\n\x0ePrepareRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\x12\x14\n\x0c\x66rom_account\x18\x02 \x01(\t\x12\x12\n\nto_account\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x01\"\x14\n\x04Vote\x12\x0c\n\x04vote\x18\x01 \x01(\x08\"\'\n\rCommitRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\"&\n\x0c\x41\x62ortRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\"\x16\n\x03\x41\x63k\x12\x0f\n\x07success\x18\x01 \x01(\x08\"(\n\x0e\x42\x61lanceRequest\x12\x16\n\x0e\x61\x63\x63ount_number\x18\x01 \x01(\t\"\"\n\x0f\x42\x61lanceResponse\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x01\x32\x9e\x01\n\x0ePaymentGateway\x12&\n\x05Login\x12\r.LoginRequest\x1a\x0e.LoginResponse\x12\x33\n\x0eProcessPayment\x12\x0f.PaymentRequest\x1a\x10.PaymentResponse\x12/\n\nGetBalance\x12\x0f.BalanceRequest\x1a\x10.BalanceResponse2\x98\x01\n\x04\x42\x61nk\x12!\n\x07Prepare\x12\x0f.PrepareRequest\x1a\x05.Vote\x12\x1e\n\x06\x43ommit\x12\x0e.CommitRequest\x1a\x04.Ack\x12\x1c\n\x05\x41\x62ort\x12\r.AbortRequest\x1a\x04.Ack\x12/\n\nGetBalance\x12\x0f.BalanceRequest\x1a\x10.BalanceResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rpayment.proto\"2\n\x0cLoginRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"\x1e\n\rLoginResponse\x12\r\n\x05token\x18\x01 \x01(\t\"b\n\x0ePaymentRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\x12\x14\n\x0c\x66rom_account\x18\x02 \x01(\t\x12\x12\n\nto_account\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x01\"\"\n\x0fPaymentResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"b\n\x0ePrepareRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\x12\x14\n\x0c\x66rom_account\x18\x02 \x01(\t\x12\x12\n\nto_account\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x01\"\x14\n\x04Vote\x12\x0c\n\x04vote\x18\x01 \x01(\x08\"\'\n\rCommitRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\"&\n\x0c\x41\x62ortRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\"\x16\n\x03\x41\x63k\x12\x0f\n\x07success\x18\x01 \x01(\x08\")\n\x15GatewayBalanceRequest\x12\x10\n\x08username\x18\x01 \x01(\t\"\x82\x01\n\x16GatewayBalanceResponse\x12\x37\n\x08\x61\x63\x63ounts\x18\x01 \x03(\x0b\x32%.GatewayBalanceResponse.AccountsEntry\x1a/\n\rAccountsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\",\n\x12\x42\x61nkBalanceRequest\x12\x16\n\x0e\x61\x63\x63ount_number\x18\x01 \x01(\t\"&\n\x13\x42\x61nkBalanceResponse\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x01\x32\xac\x01\n\x0ePaymentGateway\x12&\n\x05Login\x12\r.LoginRequest\x1a\x0e.LoginResponse\x12\x33\n\x0eProcessPayment\x12\x0f.PaymentRequest\x1a\x10.PaymentResponse\x12=\n\nGetBalance\x12\x16.GatewayBalanceRequest\x1a\x17.GatewayBalanceResponse2\xa0\x01\n\x04\x42\x61nk\x12!\n\x07Prepare\x12\x0f.PrepareRequest\x1a\x05.Vote\x12\x1e\n\x06\x43ommit\x12\x0e.CommitRequest\x1a\x04.Ack\x12\x1c\n\x05\x41\x62ort\x12\r.AbortRequest\x1a\x04.Ack\x12\x37\n\nGetBalance\x12\x13.BankBalanceRequest\x1a\x14.BankBalanceResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'payment_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
+  _globals['_GATEWAYBALANCERESPONSE_ACCOUNTSENTRY']._loaded_options = None
+  _globals['_GATEWAYBALANCERESPONSE_ACCOUNTSENTRY']._serialized_options = b'8\001'
   _globals['_LOGINREQUEST']._serialized_start=17
   _globals['_LOGINREQUEST']._serialized_end=67
   _globals['_LOGINRESPONSE']._serialized_start=69
@@ -49,12 +51,18 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_ABORTREQUEST']._serialized_end=438
   _globals['_ACK']._serialized_start=440
   _globals['_ACK']._serialized_end=462
-  _globals['_BALANCEREQUEST']._serialized_start=464
-  _globals['_BALANCEREQUEST']._serialized_end=504
-  _globals['_BALANCERESPONSE']._serialized_start=506
-  _globals['_BALANCERESPONSE']._serialized_end=540
-  _globals['_PAYMENTGATEWAY']._serialized_start=543
-  _globals['_PAYMENTGATEWAY']._serialized_end=701
-  _globals['_BANK']._serialized_start=704
-  _globals['_BANK']._serialized_end=856
+  _globals['_GATEWAYBALANCEREQUEST']._serialized_start=464
+  _globals['_GATEWAYBALANCEREQUEST']._serialized_end=505
+  _globals['_GATEWAYBALANCERESPONSE']._serialized_start=508
+  _globals['_GATEWAYBALANCERESPONSE']._serialized_end=638
+  _globals['_GATEWAYBALANCERESPONSE_ACCOUNTSENTRY']._serialized_start=591
+  _globals['_GATEWAYBALANCERESPONSE_ACCOUNTSENTRY']._serialized_end=638
+  _globals['_BANKBALANCEREQUEST']._serialized_start=640
+  _globals['_BANKBALANCEREQUEST']._serialized_end=684
+  _globals['_BANKBALANCERESPONSE']._serialized_start=686
+  _globals['_BANKBALANCERESPONSE']._serialized_end=724
+  _globals['_PAYMENTGATEWAY']._serialized_start=727
+  _globals['_PAYMENTGATEWAY']._serialized_end=899
+  _globals['_BANK']._serialized_start=902
+  _globals['_BANK']._serialized_end=1062
 # @@protoc_insertion_point(module_scope)

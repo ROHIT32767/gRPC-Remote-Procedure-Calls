@@ -46,8 +46,8 @@ class PaymentGatewayStub(object):
                 _registered_method=True)
         self.GetBalance = channel.unary_unary(
                 '/PaymentGateway/GetBalance',
-                request_serializer=payment__pb2.BalanceRequest.SerializeToString,
-                response_deserializer=payment__pb2.BalanceResponse.FromString,
+                request_serializer=payment__pb2.GatewayBalanceRequest.SerializeToString,
+                response_deserializer=payment__pb2.GatewayBalanceResponse.FromString,
                 _registered_method=True)
 
 
@@ -69,7 +69,7 @@ class PaymentGatewayServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetBalance(self, request, context):
-        """Get account balance
+        """For user balance
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -90,8 +90,8 @@ def add_PaymentGatewayServicer_to_server(servicer, server):
             ),
             'GetBalance': grpc.unary_unary_rpc_method_handler(
                     servicer.GetBalance,
-                    request_deserializer=payment__pb2.BalanceRequest.FromString,
-                    response_serializer=payment__pb2.BalanceResponse.SerializeToString,
+                    request_deserializer=payment__pb2.GatewayBalanceRequest.FromString,
+                    response_serializer=payment__pb2.GatewayBalanceResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -173,8 +173,8 @@ class PaymentGateway(object):
             request,
             target,
             '/PaymentGateway/GetBalance',
-            payment__pb2.BalanceRequest.SerializeToString,
-            payment__pb2.BalanceResponse.FromString,
+            payment__pb2.GatewayBalanceRequest.SerializeToString,
+            payment__pb2.GatewayBalanceResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -212,8 +212,8 @@ class BankStub(object):
                 _registered_method=True)
         self.GetBalance = channel.unary_unary(
                 '/Bank/GetBalance',
-                request_serializer=payment__pb2.BalanceRequest.SerializeToString,
-                response_deserializer=payment__pb2.BalanceResponse.FromString,
+                request_serializer=payment__pb2.BankBalanceRequest.SerializeToString,
+                response_deserializer=payment__pb2.BankBalanceResponse.FromString,
                 _registered_method=True)
 
 
@@ -241,7 +241,7 @@ class BankServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetBalance(self, request, context):
-        """Get account balance
+        """For account balance
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -267,8 +267,8 @@ def add_BankServicer_to_server(servicer, server):
             ),
             'GetBalance': grpc.unary_unary_rpc_method_handler(
                     servicer.GetBalance,
-                    request_deserializer=payment__pb2.BalanceRequest.FromString,
-                    response_serializer=payment__pb2.BalanceResponse.SerializeToString,
+                    request_deserializer=payment__pb2.BankBalanceRequest.FromString,
+                    response_serializer=payment__pb2.BankBalanceResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -377,8 +377,8 @@ class Bank(object):
             request,
             target,
             '/Bank/GetBalance',
-            payment__pb2.BalanceRequest.SerializeToString,
-            payment__pb2.BalanceResponse.FromString,
+            payment__pb2.BankBalanceRequest.SerializeToString,
+            payment__pb2.BankBalanceResponse.FromString,
             options,
             channel_credentials,
             insecure,

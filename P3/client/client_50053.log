@@ -1,0 +1,6 @@
+2025-03-14 01:32:02,419 - ERROR - Login error: 
+2025-03-14 01:32:11,905 - ERROR - User already logged in
+2025-03-14 01:34:06,094 - INFO - Payment successful: 6d3e67c3-d22a-4391-825b-af73e8c17218, From: bank1-1234, To: bank2-5678, Amount: 100.0
+2025-03-14 01:34:11,205 - INFO - Balances for user alice:
+2025-03-14 01:34:11,205 - INFO - Account: bank1-1234, Balance: 900.0
+2025-03-14 01:34:11,205 - INFO - Account: bank2-5678, Balance: 600.0

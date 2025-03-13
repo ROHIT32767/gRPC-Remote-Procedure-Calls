@@ -3,14 +3,14 @@ syntax = "proto3";
 service PaymentGateway {
   rpc Login(LoginRequest) returns (LoginResponse);     // Authentication
   rpc ProcessPayment(PaymentRequest) returns (PaymentResponse); // 2PC payment
-  rpc GetBalance(BalanceRequest) returns (BalanceResponse); // Get account balance
+  rpc GetBalance(GatewayBalanceRequest) returns (GatewayBalanceResponse); // For user balance
 }
 
 service Bank {
   rpc Prepare(PrepareRequest) returns (Vote);         // 2PC Phase 1
   rpc Commit(CommitRequest) returns (Ack);            // 2PC Phase 2
   rpc Abort(AbortRequest) returns (Ack);
-  rpc GetBalance(BalanceRequest) returns (BalanceResponse); // Get account balance
+  rpc GetBalance(BankBalanceRequest) returns (BankBalanceResponse); // For account balance
 }
 
 // ---------- Messages ----------
@@ -57,11 +57,19 @@ message Ack {
   bool success = 1;
 }
 
-// New messages for GetBalance
-message BalanceRequest {
+// Separate messages for PaymentGateway and Bank
+message GatewayBalanceRequest {
+  string username = 1; // Username to fetch balances for
+}
+
+message GatewayBalanceResponse {
+  map<string, double> accounts = 1; // Map of account numbers to balances
+}
+
+message BankBalanceRequest {
   string account_number = 1; // Account number to fetch balance for
 }
 
-message BalanceResponse {
+message BankBalanceResponse {
   double balance = 1; // Balance of the account
 }
