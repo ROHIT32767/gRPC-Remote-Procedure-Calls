@@ -1,7 +1,8 @@
 import grpc
-import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../protofiles')))
+import sys
+protofiles_path = os.path.join(os.path.dirname(__file__), "..", "protofiles")
+sys.path.append(protofiles_path)
 import load_balancer_pb2
 import load_balancer_pb2_grpc
 import time
