@@ -55,11 +55,10 @@ class Client:
             logger.error(f"Login error: {e.details()}")
             return False
 
-    def _send_payment_impl(self, from_acc, to_acc, amount):
+    def _send_payment_impl(self, from_acc, to_acc, amount, txn_id):
         """
         Internal implementation to send a payment.
         """
-        txn_id = str(uuid.uuid4())
         try:
             response = self.stub.ProcessPayment(payment_pb2.PaymentRequest(
                 transaction_id=txn_id,
@@ -80,17 +79,17 @@ class Client:
         """
         Send a payment. If offline, queue the payment for later retry.
         """
+        txn_id = str(uuid.uuid4())  # Generate a unique transaction ID
         if self.offline:
             with self.lock:
-                self.pending_payments.append((from_acc, to_acc, amount))
-            logger.info(f"Payment queued (offline): From: {from_acc}, To: {to_acc}, Amount: {amount}")
+                self.pending_payments.append((from_acc, to_acc, amount, txn_id))
+            logger.info(f"Payment queued (offline): From: {from_acc}, To: {to_acc}, Amount: {amount}, Txn ID: {txn_id}")
             return False
         else:
-            return self._send_payment_impl(from_acc, to_acc, amount)
+            return self._send_payment_impl(from_acc, to_acc, amount, txn_id)
 
     def get_balance(self, username):
         try:
-            # Call the GetBalance method on the gateway server
             response = self.stub.GetBalance(payment_pb2.GatewayBalanceRequest(username=username))
             if response.accounts:
                 logger.info(f"Balances for user {username}:")
@@ -129,9 +128,11 @@ class Client:
                     self.pending_payments.clear()
 
                 for payment in payments_to_retry:
-                    logger.info(f"Retrying payment: From: {payment[0]}, To: {payment[1]}, Amount: {payment[2]}")
-                    self._send_payment_impl(*payment)
+                    from_acc, to_acc, amount, txn_id = payment
+                    logger.info(f"Retrying payment: From: {from_acc}, To: {to_acc}, Amount: {amount}, Txn ID: {txn_id}")
+                    self._send_payment_impl(from_acc, to_acc, amount, txn_id)
             time.sleep(5)  # Check every 5 seconds
+
 
 
 def run_tests(port=50053):

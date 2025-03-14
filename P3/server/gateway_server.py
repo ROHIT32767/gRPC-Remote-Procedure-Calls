@@ -17,6 +17,8 @@ class GatewayServer(payment_pb2_grpc.PaymentGatewayServicer):
         with open('../config/banks.json') as f:
             self.banks = json.load(f)
         self.pending_txns = {}
+        self.processed_txns = {}  # Track processed transactions for idempotency
+
 
     def Login(self, request, context):
         user = self.users.get(request.username)
@@ -26,9 +28,12 @@ class GatewayServer(payment_pb2_grpc.PaymentGatewayServicer):
         return payment_pb2.LoginResponse()
 
     def ProcessPayment(self, request, context):
-        if request.transaction_id in self.pending_txns:
-            return payment_pb2.PaymentResponse(success=self.pending_txns[request.transaction_id])
+        if request.transaction_id in self.processed_txns:
+            return payment_pb2.PaymentResponse(success=self.processed_txns[request.transaction_id])
+
         self.pending_txns[request.transaction_id] = False
+
+        # Proceed with 2PC
         sender_bank = self._get_bank(request.from_account)
         receiver_bank = self._get_bank(request.to_account)
         prepare_ok = True
@@ -48,13 +53,15 @@ class GatewayServer(payment_pb2_grpc.PaymentGatewayServicer):
             except Exception as e:
                 print(f"Bank {bank['address']} failed: {str(e)}")
                 prepare_ok = False
+
+        # Commit or abort based on prepare phase
         if prepare_ok:
             for bank in [sender_bank, receiver_bank]:
                 creds = grpc.ssl_channel_credentials(root_certificates=open('../certificates/ca.crt', 'rb').read())
                 channel = grpc.secure_channel(bank["address"], creds)
                 stub = payment_pb2_grpc.BankStub(channel)
                 stub.Commit(payment_pb2.CommitRequest(transaction_id=request.transaction_id))
-            self.pending_txns[request.transaction_id] = True
+            self.processed_txns[request.transaction_id] = True
             return payment_pb2.PaymentResponse(success=True)
         else:
             for bank in [sender_bank, receiver_bank]:
@@ -62,7 +69,7 @@ class GatewayServer(payment_pb2_grpc.PaymentGatewayServicer):
                 channel = grpc.secure_channel(bank["address"], creds)
                 stub = payment_pb2_grpc.BankStub(channel)
                 stub.Abort(payment_pb2.AbortRequest(transaction_id=request.transaction_id))
-            self.pending_txns[request.transaction_id] = False
+            self.processed_txns[request.transaction_id] = False
             return payment_pb2.PaymentResponse(success=False)
 
     def GetBalance(self, request, context):
