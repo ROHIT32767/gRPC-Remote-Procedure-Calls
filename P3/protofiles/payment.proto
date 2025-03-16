@@ -1,84 +1,82 @@
 syntax = "proto3";
 
-service PaymentGateway {
-  rpc Login(LoginRequest) returns (LoginResponse);     
-  rpc ProcessPayment(PaymentRequest) returns (PaymentResponse); 
-  rpc GetBalance(GatewayBalanceRequest) returns (GatewayBalanceResponse);
-  rpc Ping(PingRequest) returns (PingResponse); 
+service PaymentService {
+  rpc Authenticate(AuthRequest) returns (AuthResponse);     
+  rpc ExecutePayment(PaymentExecutionRequest) returns (PaymentExecutionResponse); 
+  rpc FetchBalance(BalanceFetchRequest) returns (BalanceFetchResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse); 
 }
 
-service Bank {
-  rpc Prepare(PrepareRequest) returns (Vote);         
-  rpc Commit(CommitRequest) returns (Ack);            
-  rpc Abort(AbortRequest) returns (Ack);
-  rpc GetBalance(BankBalanceRequest) returns (BankBalanceResponse); 
+service BankService {
+  rpc PrepareTransaction(TransactionPrepareRequest) returns (TransactionVote);         
+  rpc CommitTransaction(TransactionCommitRequest) returns (TransactionAck);            
+  rpc AbortTransaction(TransactionAbortRequest) returns (TransactionAck);
+  rpc FetchBankBalance(BankBalanceFetchRequest) returns (BankBalanceFetchResponse); 
 }
 
-message LoginRequest {
-  string username = 1;
-  string password = 2;
+message AuthRequest {
+  string user_name = 1;
+  string pass_word = 2;
 }
 
-message LoginResponse {
-  string token = 1;
+message AuthResponse {
+  string auth_token = 1;
 }
 
-message PaymentRequest {
-  string transaction_id = 1;
-  string from_account = 2;
-  string to_account = 3;
-  double amount = 4;
+message PaymentExecutionRequest {
+  string payment_id = 1;
+  string source_account = 2;
+  string destination_account = 3;
+  double payment_amount = 4;
 }
 
-message PaymentResponse {
-  bool success = 1;
+message PaymentExecutionResponse {
+  bool is_successful = 1;
 }
 
-message PrepareRequest {
-  string transaction_id = 1;
-  string from_account = 2;
-  string to_account = 3;
-  double amount = 4;
+message TransactionPrepareRequest {
+  string payment_id = 1;
+  string source_account = 2;
+  string destination_account = 3;
+  double payment_amount = 4;
 }
 
-message Vote {
-  bool vote = 1;
+message TransactionVote {
+  bool is_approved = 1;
 }
 
-message CommitRequest {
-  string transaction_id = 1;
+message TransactionCommitRequest {
+  string payment_id = 1;
 }
 
-message AbortRequest {
-  string transaction_id = 1;
+message TransactionAbortRequest {
+  string payment_id = 1;
 }
 
-message Ack {
-  bool success = 1;
+message TransactionAck {
+  bool is_successful = 1;
 }
 
-// Separate messages for PaymentGateway and Bank
-message GatewayBalanceRequest {
-  string username = 1; // Username to fetch balances for
+message BalanceFetchRequest {
+  string user_name = 1;
 }
 
-message GatewayBalanceResponse {
-  map<string, double> accounts = 1; // Map of account numbers to balances
+message BalanceFetchResponse {
+  map<string, double> account_balances = 1;
 }
 
-message BankBalanceRequest {
-  string account_number = 1; // Account number to fetch balance for
+message BankBalanceFetchRequest {
+  string account_number = 1;
 }
 
-message BankBalanceResponse {
-  double balance = 1; // Balance of the account
+message BankBalanceFetchResponse {
+  double account_balance = 1;
 }
 
-// New messages for Ping
-message PingRequest {
-  string message = 1; // Optional message for debugging
+message HealthCheckRequest {
+  string health_message = 1;
 }
 
-message PingResponse {
-  string message = 1; // Response message
+message HealthCheckResponse {
+  string health_response = 1;
 }
