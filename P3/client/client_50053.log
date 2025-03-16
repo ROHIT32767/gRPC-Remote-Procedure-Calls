@@ -1,9 +1,0 @@
-2025-03-16 21:49:50,863 - INFO - Authentication successful for user: rohit
-2025-03-16 21:49:54,363 - INFO - Balances for user rohit:
-2025-03-16 21:49:54,363 - INFO - Account: bank1-1234, Balance: 1000.0
-2025-03-16 21:49:54,363 - INFO - Account: bank2-5678, Balance: 500.0
-2025-03-16 21:50:18,086 - INFO - Payment successful: d03d097f-eea3-49d3-9493-162bea4dad03, From: bank1-1234, To: bank2-5678, Amount: 999.0
-2025-03-16 21:50:21,395 - INFO - Balances for user rohit:
-2025-03-16 21:50:21,395 - INFO - Account: bank1-1234, Balance: 1.0
-2025-03-16 21:50:21,395 - INFO - Account: bank2-5678, Balance: 1499.0
-2025-03-16 21:50:26,475 - INFO - Logged out
