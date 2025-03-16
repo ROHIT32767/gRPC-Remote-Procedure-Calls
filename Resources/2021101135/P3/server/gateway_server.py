@@ -56,7 +56,7 @@ class GatewayServer(PaymentGatewayServicer):
         for bank in [sender_bank, receiver_bank]:
             try:
                 creds = grpc.ssl_channel_credentials(
-                root_certificates=open('../../certificates/ca.crt', 'rb').read() )
+                root_certificates=open('../../certificates/server_CA.crt', 'rb').read() )
                 channel = grpc.secure_channel(bank["address"], creds)
                 stub = BankStub(channel)
                 response = stub.Prepare(PrepareRequest(
@@ -77,7 +77,7 @@ class GatewayServer(PaymentGatewayServicer):
         if prepare_ok:
             for bank in [sender_bank, receiver_bank]:
                 creds = grpc.ssl_channel_credentials(
-                root_certificates=open('../../certificates/ca.crt', 'rb').read() )
+                root_certificates=open('../../certificates/server_CA.crt', 'rb').read() )
                 channel = grpc.secure_channel(bank["address"], creds)
                 stub = BankStub(channel)  
                 stub.Commit(CommitRequest(transaction_id=request.transaction_id))
@@ -87,7 +87,7 @@ class GatewayServer(PaymentGatewayServicer):
         else:
             for bank in [sender_bank, receiver_bank]:
                 creds = grpc.ssl_channel_credentials(
-                root_certificates=open('../../certificates/ca.crt', 'rb').read() )
+                root_certificates=open('../../certificates/server_CA.crt', 'rb').read() )
                 channel = grpc.secure_channel(bank["address"], creds)
                 stub = BankStub(channel)
                 stub.Abort(AbortRequest(transaction_id=request.transaction_id))
@@ -102,7 +102,7 @@ class GatewayServer(PaymentGatewayServicer):
 def serve():
     # Load SSL credentials
     server_credentials = grpc.ssl_server_credentials(
-        [(open('../../certificates/gateway.key', 'rb').read(), open('../../certificates/gateway.crt', 'rb').read())]
+        [(open('../../certificates/gateway_server.key', 'rb').read(), open('../../certificates/gateway_server.crt', 'rb').read())]
     )
     
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

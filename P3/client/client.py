@@ -11,11 +11,11 @@ protofiles_path = os.path.join(os.path.dirname(__file__), "..", "protofiles")
 sys.path.append(protofiles_path)
 import payment_pb2, payment_pb2_grpc
 
-class Client:
+class ClientServer:
     def __init__(self, port):
         self.port = port
         self.token = None
-        self.pending_payments = []
+        self.pending_transactions = []
         self.offline = False  
         self.lock = threading.Lock()  
         self.channel = None
@@ -35,13 +35,13 @@ class Client:
         self.channel = grpc.secure_channel(
             f"localhost:{self.port}",
             grpc.ssl_channel_credentials(
-                root_certificates=open('../certificates/ca.crt', 'rb').read()
+                root_certificates=open('../certificates/server_CA.crt', 'rb').read()
             ),
             options=[('grpc.ssl_target_name_override', 'localhost')]
         )
         self.stub = payment_pb2_grpc.PaymentGatewayStub(self.channel)
 
-    def login(self, username, password):
+    def user_login(self, username, password):
         try:
             response = self.stub.Login(payment_pb2.LoginRequest(username=username, password=password))
             if not response.token:
@@ -49,27 +49,28 @@ class Client:
                 return False
             else:
                 self.token = response.token
+                self.logged_user = username  # Set the logged-in user
                 logger.info(f"Login successful for user: {username}")
                 return True
         except grpc.RpcError as e:
             logger.error(f"Login error: {e.details()}")
             return False
 
-    def _send_payment_impl(self, from_acc, to_acc, amount, txn_id):
+    def _send_payment_impl(self, from_acc, to_acc, amount, trxn_id):
         """
         Internal implementation to send a payment.
         """
         try:
             response = self.stub.ProcessPayment(payment_pb2.PaymentRequest(
-                transaction_id=txn_id,
+                transaction_id=trxn_id,
                 from_account=from_acc,
                 to_account=to_acc,
                 amount=amount
             ))
             if response.success:
-                logger.info(f"Payment successful: {txn_id}, From: {from_acc}, To: {to_acc}, Amount: {amount}")
+                logger.info(f"Payment successful: {trxn_id}, From: {from_acc}, To: {to_acc}, Amount: {amount}")
             else:
-                logger.error(f"Payment failed: {txn_id}, From: {from_acc}, To: {to_acc}, Amount: {amount}")
+                logger.error(f"Payment failed: {trxn_id}, From: {from_acc}, To: {to_acc}, Amount: {amount}")
             return response.success
         except grpc.RpcError as e:
             logger.error(f"Payment error: {e.details()}")
@@ -79,16 +80,34 @@ class Client:
         """
         Send a payment. If offline, queue the payment for later retry.
         """
-        txn_id = str(uuid.uuid4())  
+        if not self.logged_user:
+            logger.error("No user logged in. Please log in first.")
+            return False
+
+        if (not self.offline) and (not self._validate_from_account(from_acc)):
+            logger.error(f"Payment failed: Account {from_acc} is not owned by the logged-in user.")
+            return False
+        
+        trxn_id = str(uuid.uuid4())  
         if self.offline:
             with self.lock:
-                self.pending_payments.append((from_acc, to_acc, amount, txn_id))
-            logger.info(f"Payment queued (offline): From: {from_acc}, To: {to_acc}, Amount: {amount}, Txn ID: {txn_id}")
+                self.pending_transactions.append((from_acc, to_acc, amount, trxn_id))
+            logger.info(f"Payment queued (offline): From: {from_acc}, To: {to_acc}, Amount: {amount}, trxn ID: {trxn_id}")
             return False
         else:
-            return self._send_payment_impl(from_acc, to_acc, amount, txn_id)
+            return self._send_payment_impl(from_acc, to_acc, amount, trxn_id)
 
     def get_balance(self, username):
+        """
+        Fetch the balance for the given user.
+        """
+        if not self.logged_user:
+            logger.error("No user logged in. Please log in first.")
+            return
+        # Check if the requested username matches the logged-in user
+        if username != self.logged_user:
+            logger.error(f"Permission denied. You can only view your own balances.")
+            return
         try:
             response = self.stub.GetBalance(payment_pb2.GatewayBalanceRequest(username=username))
             if response.accounts:
@@ -99,6 +118,20 @@ class Client:
                 logger.error(f"No accounts found for user: {username}")
         except grpc.RpcError as e:
             logger.error(f"Error fetching balance: {e.details()}")
+
+    def _validate_from_account(self, from_acc):
+        """
+        Validate if the from_account belongs to the logged-in user.
+        """
+        try:
+            response = self.stub.GetBalance(payment_pb2.GatewayBalanceRequest(username=self.logged_user))
+            if from_acc in response.accounts:
+                return True
+            else:
+                return False
+        except grpc.RpcError as e:
+            logger.error(f"Error validating from_account: {e.details()}")
+            return False
 
     def _check_connectivity(self):
         """
@@ -122,21 +155,24 @@ class Client:
         Periodically retry pending payments when the server is back online.
         """
         while True:
-            if not self.offline and self.pending_payments:
+            if not self.offline and self.pending_transactions:
                 with self.lock:
-                    payments_to_retry = self.pending_payments.copy()
-                    self.pending_payments.clear()
+                    payments_to_retry = self.pending_transactions.copy()
+                    self.pending_transactions.clear()
 
                 for payment in payments_to_retry:
-                    from_acc, to_acc, amount, txn_id = payment
-                    logger.info(f"Retrying payment: From: {from_acc}, To: {to_acc}, Amount: {amount}, Txn ID: {txn_id}")
-                    self._send_payment_impl(from_acc, to_acc, amount, txn_id)
+                    from_acc, to_acc, amount, trxn_id = payment
+                    logger.info(f"Retrying payment: From: {from_acc}, To: {to_acc}, Amount: {amount}, trxn ID: {trxn_id}")
+                    self._send_payment_impl(from_acc, to_acc, amount, trxn_id)
             time.sleep(5)  # Check every 5 seconds
 
+    def logout(self):
+        self.token = None
+        self.logged_user = None
 
 
 def run_tests(port=50053):
-    client = Client(port)
+    client = ClientServer(port)
     client_user_name = ""
     while True:
         command = input("Enter command: ")
@@ -146,7 +182,7 @@ def run_tests(port=50053):
                 continue
             username = input("Enter username: ")
             password = input("Enter password: ")
-            client.login(username, password)
+            client.user_login(username, password)
             client_user_name = username
         elif command == "payment":
             from_acc = input("Enter from account: ")
@@ -156,7 +192,7 @@ def run_tests(port=50053):
         elif command == "balance":
             client.get_balance(client_user_name)
         elif command == "logout":
-            client.token = None
+            client.logout()
             logger.info("Logged out")
             client_user_name = ""
         elif command == "exit":

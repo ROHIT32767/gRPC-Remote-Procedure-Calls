@@ -92,9 +92,9 @@ class BankServer(BankServicer):
 
 def serve(bank_name, port):
     credentials = grpc.ssl_server_credentials(
-        [(open(f'../../certificates/{bank_name}.key', 'rb').read(), 
-          open(f'../../certificates/{bank_name}.crt', 'rb').read())],
-        root_certificates=open('../../certificates/ca.crt', 'rb').read()
+        [(open(f'../../certificates/{bank_name}_server.key', 'rb').read(), 
+          open(f'../../certificates/{bank_name}_server.crt', 'rb').read())],
+        root_certificates=open('../../certificates/server_CA.crt', 'rb').read()
     )
     server = grpc.server(futures.ThreadPoolExecutor())
     add_BankServicer_to_server(BankServer(bank_name), server)

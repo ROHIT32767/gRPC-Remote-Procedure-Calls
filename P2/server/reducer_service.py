@@ -55,12 +55,10 @@ class ReducerServiceServicer(reducer_pb2_grpc.ReducerServiceServicer):
                     else:
                         self.shuffled_and_sorted_data[key] = [value]
 
-        # word count
         if query == 1:
             for key, value in self.shuffled_and_sorted_data.items():
                 final_output_path = self.wordCount_reduce_function(key, value)
         
-        # inverted index
         elif query == 2:
             for key, value in self.shuffled_and_sorted_data.items():
                 final_output_path = self.invertedIndex_reduce_function(key, value)

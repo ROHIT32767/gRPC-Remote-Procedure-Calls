@@ -66,27 +66,39 @@ class BankServer(payment_pb2_grpc.BankServicer):
             return payment_pb2.BankBalanceResponse(balance=self.bank_accounts[account_number])
 
     def get_bank_data(self, bank_address):
-        file_path = f"../utils/{bank_address}_accounts.json"
+        file_path = f"../utils/{bank_address}_server_accounts.json"
         with open(file_path, "r") as file:
             data = json.load(file)
         return data
 
-def serve(bank_address, port):
-    credentials = grpc.ssl_server_credentials(
-        [(open(f'../certificates/{bank_address}.key', 'rb').read(), 
-         open(f'../certificates/{bank_address}.crt', 'rb').read())],
-        root_certificates=open('../certificates/ca.crt', 'rb').read()
-    )
+
+def load_credentials(bank_address):
+    """ Loads SSL credentials for the given bank. """
+    key_path = f"../certificates/{bank_address}_server.key"
+    cert_path = f"../certificates/{bank_address}_server.crt"
+    ca_cert_path = "../certificates/server_CA.crt"
+
+    with open(key_path, "rb") as key_file, open(cert_path, "rb") as cert_file, open(ca_cert_path, "rb") as ca_file:
+        return grpc.ssl_server_credentials([(key_file.read(), cert_file.read())], root_certificates=ca_file.read())
+
+def create_server(bank_address, port):
+    """ Initializes and configures the gRPC server for a specific bank. """
+    credentials = load_credentials(bank_address)
     server = grpc.server(futures.ThreadPoolExecutor())
     payment_pb2_grpc.add_BankServicer_to_server(BankServer(bank_address), server)
-    server.add_secure_port(f'0.0.0.0:{port}', credentials)
+    server.add_secure_port(f"0.0.0.0:{port}", credentials)
+    return server
+
+def serve(bank_address, port):
+    """ Starts the gRPC bank server and waits for termination. """
+    server = create_server(bank_address, port)
+    print(f"{bank_address} Bank running on port {port}...")
     server.start()
-    print(f"{bank_address} Bank running...")
     server.wait_for_termination()
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--bank', type=str, required=True)
-    parser.add_argument('--port', type=int, required=True)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Start a secure gRPC Bank Server.")
+    parser.add_argument("--bank", type=str, required=True, help="Bank identifier (e.g., bank1, bank2).")
+    parser.add_argument("--port", type=int, required=True, help="Port number for the bank server.")
     args = parser.parse_args()
     serve(args.bank, args.port)

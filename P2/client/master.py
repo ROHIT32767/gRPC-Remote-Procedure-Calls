@@ -48,7 +48,6 @@ class Master:
         file_i = 0
 
         idle_mapper_num = 0
-        # First assigning chunk size number of files to each mapper
         while mapper_i <= self.n_mappers:
             end = file_i + chunk_size
             file_list = []
@@ -61,17 +60,16 @@ class Master:
                 mapper_to_files_mapping[mapper_i] = [file_list, file_id_list]
             else:
                 idle_mapper_num += 1
-                mapper_name = f"worker_{mapper_i}"  # Use the correct key format
-                if mapper_name in self.mappers:  # Check if the mapper exists before deleting
+                mapper_name = f"worker_{mapper_i}" 
+                if mapper_name in self.mappers:  
                     del self.mappers[mapper_name]
             mapper_i = mapper_i + 1
 
         self.n_mappers -= idle_mapper_num
-        # Assigning remaining files (1 to each mapper)
         mapper_i = 1
         while file_i < n_input_files:
             if mapper_i not in mapper_to_files_mapping:
-                mapper_to_files_mapping[mapper_i] = [[], []]  # Initialize if not present
+                mapper_to_files_mapping[mapper_i] = [[], []]  
             mapper_to_files_mapping[mapper_i][0].append(files[file_i])
             mapper_to_files_mapping[mapper_i][1].append(file_i)
             file_i = file_i + 1

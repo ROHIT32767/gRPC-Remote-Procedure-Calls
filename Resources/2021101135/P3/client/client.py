@@ -15,7 +15,7 @@ class Client:
         self.channel = grpc.secure_channel(
             'localhost:50053',
             grpc.ssl_channel_credentials(
-                root_certificates=open('../../certificates/ca.crt', 'rb').read()
+                root_certificates=open('../../certificates/server_CA.crt', 'rb').read()
             ),
             options=[('grpc.ssl_target_name_override', 'localhost')]
         )

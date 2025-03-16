@@ -1,20 +1,19 @@
 syntax = "proto3";
 
 service PaymentGateway {
-  rpc Login(LoginRequest) returns (LoginResponse);     // Authentication
-  rpc ProcessPayment(PaymentRequest) returns (PaymentResponse); // 2PC payment
-  rpc GetBalance(GatewayBalanceRequest) returns (GatewayBalanceResponse); // For user balance
-  rpc Ping(PingRequest) returns (PingResponse); // For connectivity check
+  rpc Login(LoginRequest) returns (LoginResponse);     
+  rpc ProcessPayment(PaymentRequest) returns (PaymentResponse); 
+  rpc GetBalance(GatewayBalanceRequest) returns (GatewayBalanceResponse);
+  rpc Ping(PingRequest) returns (PingResponse); 
 }
 
 service Bank {
-  rpc Prepare(PrepareRequest) returns (Vote);         // 2PC Phase 1
-  rpc Commit(CommitRequest) returns (Ack);            // 2PC Phase 2
+  rpc Prepare(PrepareRequest) returns (Vote);         
+  rpc Commit(CommitRequest) returns (Ack);            
   rpc Abort(AbortRequest) returns (Ack);
-  rpc GetBalance(BankBalanceRequest) returns (BankBalanceResponse); // For account balance
+  rpc GetBalance(BankBalanceRequest) returns (BankBalanceResponse); 
 }
 
-// ---------- Messages ----------
 message LoginRequest {
   string username = 1;
   string password = 2;
