@@ -15,10 +15,10 @@ from threading import Lock
 
 class GatewayServer(PaymentGatewayServicer):
     def __init__(self):
-        # Load users and banks from config files
-        with open('../config/users.json') as f:
+        # Load users and banks from utils files
+        with open('../utils/users.json') as f:
             self.users = json.load(f) 
-        with open('../config/banks.json') as f:
+        with open('../utils/banks.json') as f:
             self.banks = json.load(f) 
         self.pending_txns = {}  # Track pending transactions for idempotency
         self.txn_details = {} 

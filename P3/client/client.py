@@ -44,13 +44,13 @@ class Client:
     def login(self, username, password):
         try:
             response = self.stub.Login(payment_pb2.LoginRequest(username=username, password=password))
-            if response.token:
+            if not response.token:
+                logger.error(f"Login failed for user: {username}")
+                return False
+            else:
                 self.token = response.token
                 logger.info(f"Login successful for user: {username}")
                 return True
-            else:
-                logger.error(f"Login failed for user: {username}")
-                return False
         except grpc.RpcError as e:
             logger.error(f"Login error: {e.details()}")
             return False
@@ -79,7 +79,7 @@ class Client:
         """
         Send a payment. If offline, queue the payment for later retry.
         """
-        txn_id = str(uuid.uuid4())  # Generate a unique transaction ID
+        txn_id = str(uuid.uuid4())  
         if self.offline:
             with self.lock:
                 self.pending_payments.append((from_acc, to_acc, amount, txn_id))

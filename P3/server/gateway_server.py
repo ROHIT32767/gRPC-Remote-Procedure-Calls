@@ -12,9 +12,9 @@ import payment_pb2, payment_pb2_grpc
 
 class GatewayServer(payment_pb2_grpc.PaymentGatewayServicer):
     def __init__(self):
-        with open('../config/users.json') as f:
+        with open('../utils/users.json') as f:
             self.users = json.load(f)
-        with open('../config/banks.json') as f:
+        with open('../utils/banks.json') as f:
             self.banks = json.load(f)
         self.pending_txns = {}
         self.processed_txns = {}  # Track processed transactions for idempotency

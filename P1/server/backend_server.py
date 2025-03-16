@@ -16,8 +16,8 @@ class BackendServer:
     def __init__(self, address):
         self.address = address
         self.cpu_load = 0.0
-        self.etcd = etcd3.client()  # Connect to etcd
-        self.lease = self.etcd.lease(10)  # Create a lease with a TTL of 10 seconds
+        self.etcd = etcd3.client()  
+        self.lease = self.etcd.lease(10)  
 
     def register_with_etcd(self):
         """Register the server with etcd using a lease."""
@@ -29,7 +29,7 @@ class BackendServer:
         while True:
             try:
                 self.lease.refresh()
-                time.sleep(5)  # Refresh every 5 seconds
+                time.sleep(5)  
             except Exception as e:
                 print(f"Failed to refresh lease: {e}")
                 break
@@ -50,7 +50,7 @@ class BackendServer:
 
     def get_cpu_usage(self):
         """Measure the CPU usage of the current process."""
-        return psutil.cpu_percent(interval=1)  # Measure CPU usage over 1 second
+        return psutil.cpu_percent(interval=1)  
 
     def handle_simple_task(self, request):
         """Handle a simple task."""
@@ -58,7 +58,7 @@ class BackendServer:
 
     def handle_cpu_heavy_task(self, request):
         """Handle a CPU-heavy task."""
-        n = 10000000  # Adjust this value to control the task's intensity
+        n = 10000000  
         total = 0
         for i in range(n):
             total += i
@@ -82,14 +82,8 @@ def serve(port_id):
     server_address = 'localhost:' + port_id
     backend_server = BackendServer(server_address)
     backend_server.register_with_etcd()
-
-    # Start a thread to keep the server registered in etcd
     threading.Thread(target=backend_server.keep_alive, daemon=True).start()
-
-    # Start a thread to report load periodically to LB
     threading.Thread(target=backend_server.report_load_to_lb, daemon=True).start()
-
-    # Create a gRPC server for handling client requests
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     load_balancer_pb2_grpc.add_BackendServicer_to_server(BackendServicer(backend_server), server)
     server.add_insecure_port(server_address)

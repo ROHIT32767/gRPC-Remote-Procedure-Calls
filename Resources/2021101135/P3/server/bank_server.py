@@ -87,7 +87,7 @@ class BankServer(BankServicer):
 
 
     def _load_accounts(self, bank_name):
-        with open(f'../config/{bank_name}_accounts.json') as f:
+        with open(f'../utils/{bank_name}_accounts.json') as f:
             return json.load(f)
 
 def serve(bank_name, port):

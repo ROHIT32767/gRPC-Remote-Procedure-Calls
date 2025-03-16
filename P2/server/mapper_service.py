@@ -67,7 +67,7 @@ class Mapper:
 
     def __init__(self, port, mapper_name):
         self.address = "localhost"
-        self.port = port                       
+        self.port = port                        # str
         self.mapper_name = mapper_name
     
     def serve(self, mapper_name):
@@ -81,6 +81,7 @@ class Mapper:
         server.wait_for_termination()
 
 if __name__ == "__main__":
+    # port = input("Enter port for server: ")
     port = sys.argv[1]
     mapper_name = sys.argv[2]
     myServer = Mapper(port, mapper_name)

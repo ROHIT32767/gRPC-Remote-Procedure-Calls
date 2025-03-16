@@ -12,13 +12,11 @@ import time
 
 class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
     def __init__(self, load_balancing_policy="Round Robin"):
-        self.servers = {}  # Dictionary to store server addresses and their loads
+        self.servers = {}  
         self.current_index = 0
         self.lock = threading.Lock()
         self.load_balancing_policy = load_balancing_policy
-        self.etcd = etcd3.client()  # Connect to etcd
-
-        # Start a thread for dynamic server discovery
+        self.etcd = etcd3.client()  
         threading.Thread(target=self.watch_servers, daemon=True).start()
 
     def watch_servers(self):
@@ -27,15 +25,13 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
         while True:
             try:
                 with self.lock:
-                    # Fetch all servers registered in etcd under /servers/
                     servers = self.etcd.get_prefix('/servers/')
-                    # Update the servers dictionary with the latest list of servers
                     self.servers = {
                         key.decode('utf-8').split('/')[-1]: 0.0
                         for key, _ in servers
                     }
                 print(f"Available servers: {list(self.servers.keys())}")
-                time.sleep(5)  # Update every 5 seconds
+                time.sleep(5)  
             except Exception as e:
                 print(f"Failed to fetch server list: {e}")
                 break
@@ -47,20 +43,13 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
                 context.set_details('No servers available')
                 return load_balancer_pb2.ServerResponse()
 
-            # Implement different load balancing policies
             if self.load_balancing_policy == "Pick First":
                 server = list(self.servers.keys())[0]
             elif self.load_balancing_policy == "Round Robin":
-                if not self.servers:  # Check if servers list is empty
-                    context.set_code(grpc.StatusCode.UNAVAILABLE)
-                    context.set_details('No servers available')
-                    return load_balancer_pb2.ServerResponse()
-                # Check if the current index is out of range
                 if self.current_index >= len(self.servers):
                     self.current_index = 0
                 if self.current_index < 0:
                     self.current_index = len(self.servers) - 1
-                # Check if the server is still in the list
                 while list(self.servers.keys())[self.current_index] not in self.servers:
                     self.current_index = (self.current_index + 1) % len(self.servers)
                 server = list(self.servers.keys())[self.current_index]

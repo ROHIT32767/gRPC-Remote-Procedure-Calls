@@ -13,15 +13,12 @@ def send_request(client_id, task_type):
     """Continuously send requests to the load balancer."""
     while True:
         try:
-            # Query the Load Balancer for a server
             lb_channel = grpc.insecure_channel('localhost:50051')
             lb_stub = load_balancer_pb2_grpc.LoadBalancerStub(lb_channel)
             server_response = lb_stub.GetServer(load_balancer_pb2.ClientRequest(client_id=client_id))
 
             if server_response.server_address:
                 print(f"Client {client_id} assigned to server {server_response.server_address}")
-
-                # Send the task to the assigned server
                 backend_channel = grpc.insecure_channel(server_response.server_address)
                 backend_stub = load_balancer_pb2_grpc.BackendStub(backend_channel)
                 task_response = backend_stub.ProcessTask(
@@ -31,10 +28,10 @@ def send_request(client_id, task_type):
             else:
                 print(f"Client {client_id} could not get a server assignment")
 
-            time.sleep(2)  # Wait before sending the next request
+            time.sleep(2)
         except grpc.RpcError as e:
             print(f"Client {client_id} encountered an error: {e}")
-            time.sleep(2)  # Wait before retrying
+            time.sleep(2)  
 
 def main(client_id, task_type):
     clients = [f"{client_id}-{i}" for i in range(5)]
