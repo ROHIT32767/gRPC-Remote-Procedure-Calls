@@ -21,8 +21,8 @@ map_intermediate_location = []
 class Master:
     def __init__(self, query, n_mappers, n_reducers):
         self.query = query
-        self.input_location = os.path.join(os.path.dirname(__file__), "..", "dataset")  # Resolve input path
-        self.output_location = os.path.join(os.path.dirname(__file__), "..", "outputs")  # Resolve output path
+        self.input_location = os.path.join(os.path.dirname(__file__), "..", "dataset")  
+        self.output_location = os.path.join(os.path.dirname(__file__), "..", "outputs")  
         self.n_mappers = n_mappers
         self.n_reducers = n_reducers
         self.mappers = self._assign_ports(n_mappers, 8080)
@@ -37,9 +37,7 @@ class Master:
         n_input_files = len(files)
         mapper_to_files_mapping = {}
 
-        if self.query == 3:
-            chunk_size = 2
-        elif self.n_mappers > n_input_files:
+        if self.n_mappers > n_input_files:
             chunk_size = 1
         else:
             chunk_size = n_input_files // self.n_mappers
@@ -81,7 +79,7 @@ class Master:
     def spawn_mappers(self):
         mappers_process = []
         for mapper_name, port in self.mappers.items():
-            mapper_script_path = os.path.join(os.path.dirname(__file__), "..", "server", "mapper_service.py")
+            mapper_script_path = os.path.join(os.path.dirname(__file__), "..", "server", "mapper.py")
             mapper = subprocess.Popen(['python3', mapper_script_path, str(port), mapper_name])
             print(f"Mapper {mapper_name} started on port {port} with PID {mapper.pid}")
             mappers_process.append(mapper)
@@ -91,7 +89,7 @@ class Master:
     def spawn_reducers(self):
         reducers_process = []
         for reducer_name, port in self.reducers.items():
-            reducer_script_path = os.path.join(os.path.dirname(__file__), "..", "server", "reducer_service.py")
+            reducer_script_path = os.path.join(os.path.dirname(__file__), "..", "server", "reducer.py")
             reducer = subprocess.Popen(['python3', reducer_script_path, str(port), reducer_name])
             print(f"Reducer {reducer_name} started on port {port} with PID {reducer.pid}")
             reducers_process.append(reducer)
@@ -164,7 +162,6 @@ class Master:
                 if os.path.exists(reducer_output_path):
                     with open(reducer_output_path, "r") as reducer_output_file:
                         final_output_file.write(reducer_output_file.read())
-                    # os.remove(reducer_output_path)  # Optionally, remove the individual reducer output file after aggregation
         print(f"Aggregated final output written to {final_output_path}")
 
 
@@ -191,4 +188,4 @@ if __name__ == '__main__':
     master.reduce(map_intermediate_location)
     time.sleep(20)
     master.terminate_reducers(reducers_process)
-    master.aggregate_reducer_outputs()  # Call the new method to aggregate reducer outputs
+    master.aggregate_reducer_outputs()

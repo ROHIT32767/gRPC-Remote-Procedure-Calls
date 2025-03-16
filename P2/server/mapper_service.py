@@ -7,9 +7,7 @@ sys.path.append(protofiles_path)
 import mapper_service_pb2 as mapper_pb2
 import mapper_service_pb2_grpc as mapper_pb2_grpc
 from pathlib import Path
-import datetime
 import os
-import pandas as pd
 import sys
 
 class MapperServiceServicer(mapper_pb2_grpc.MapperServiceServicer):
@@ -61,28 +59,3 @@ class MapperServiceServicer(mapper_pb2_grpc.MapperServiceServicer):
                 response = self._invertedIndex(request.input_split_file_id[file_name], file_content)
 
         return mapper_pb2.MapResponse(intermediate_file_location = self.path, status = mapper_pb2.MapResponse.Status.SUCCESS)
-
-
-class Mapper:
-
-    def __init__(self, port, mapper_name):
-        self.address = "localhost"
-        self.port = port                        # str
-        self.mapper_name = mapper_name
-    
-    def serve(self, mapper_name):
-
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        mapper_pb2_grpc.add_MapperServiceServicer_to_server(
-            MapperServiceServicer(mapper_name), server
-        )
-        server.add_insecure_port("[::]:" + self.port)
-        server.start()
-        server.wait_for_termination()
-
-if __name__ == "__main__":
-    # port = input("Enter port for server: ")
-    port = sys.argv[1]
-    mapper_name = sys.argv[2]
-    myServer = Mapper(port, mapper_name)
-    myServer.serve(mapper_name)
