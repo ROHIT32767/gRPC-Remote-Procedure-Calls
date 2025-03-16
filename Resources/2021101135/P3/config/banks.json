@@ -1,8 +1,0 @@
-{
-    "bank1": {
-      "address": "localhost:50054"
-    },
-    "bank2": {
-      "address": "localhost:50055"
-    }
-  }

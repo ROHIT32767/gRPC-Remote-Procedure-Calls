@@ -9,6 +9,9 @@ import load_balancer_pb2_grpc
 import threading
 import etcd3
 import time
+import argparse
+
+POLICY_MAP = {"rr": "Round Robin", "pf": "Pick First", "ll": "Least Load"}
 
 class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
     def __init__(self, load_balancing_policy="Round Robin"):
@@ -67,13 +70,16 @@ class LoadBalancerServicer(load_balancer_pb2_grpc.LoadBalancerServicer):
                 print(f"Server {request.server_address} reported load: {request.cpu_load}")
             return load_balancer_pb2.LoadReportResponse(success=True)
 
-def serve():
+def serve(load_balancing_policy="Round Robin"):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    load_balancer_pb2_grpc.add_LoadBalancerServicer_to_server(LoadBalancerServicer(), server)
+    load_balancer_pb2_grpc.add_LoadBalancerServicer_to_server(LoadBalancerServicer(load_balancing_policy), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     print("Load Balancer Server running on port 50051...")
     server.wait_for_termination()
 
 if __name__ == '__main__':
-    serve()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", choices=POLICY_MAP.keys(), default="rr", help="LB policy: rr (Round Robin), pf (Pick First), ll (Least Load)")
+    args = parser.parse_args()
+    serve(POLICY_MAP[args.p])
