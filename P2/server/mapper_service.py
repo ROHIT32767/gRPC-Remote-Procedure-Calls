@@ -27,35 +27,28 @@ class MapperServiceServicer(mapper_pb2_grpc.MapperServiceServicer):
     def file_write(self, path, content):
         with open(path, "a+") as file:
             file.write(content + "\n")
-
-    def partition(self, key):
-        return str(len(key)%(self.n_reducers))
     
-    def _wordCount(self, key, value):
-        for word in value.split(" "):
-            value = 1
-            partion_name = self.partition(word)
-            self.file_write(self.path + "/P" + partion_name, word.lower() + " " + str(value))
+    def word_count_function(self, key, value):
+        for word in value.split():
+            self.file_write(os.path.join(self.path, f"P{str(len(word) % self.n_reducers)}"), f"{word.lower()} 1")
                 
-    def _invertedIndex(self, key, value):
+    def inverted_index_function(self, key, value):
         for line in value:
-            for word in line.split(" "):
-                partition_name = self.partition(word)
-                self.file_write(self.path + "/P" + partition_name, word.lower() + " " + str(key))
+            for word in line.split():
+                self.file_write(os.path.join(self.path, f"P{str(len(word) % self.n_reducers)}"), f"{word.lower()} {key}")
 
     def map(self, request, context):
         self.n_reducers = request.n_reducers
         self.query = request.query
-        
-        if request.query == 1:
-            for file_name in request.input_split_files:
-                file_content = self.file_read(request.input_location + "/" + file_name)
-                for line in range(len(file_content)):
-                    response = self._wordCount(line, file_content[line])
-        
-        elif request.query == 2:
-            for file_name in range(len(request.input_split_files)):
-                file_content = self.file_read(request.input_location + "/" + request.input_split_files[file_name])
-                response = self._invertedIndex(request.input_split_file_id[file_name], file_content)
+        for idx, file_name in enumerate(request.input_split_files):
+            file_content = self.file_read(os.path.join(request.input_location, file_name))
+            if request.query == 1:
+                for line in file_content:
+                    self.word_count_function(line, file_content[line])
+            elif request.query == 2:
+                self.inverted_index_function(request.input_split_file_id[idx], file_content)
 
-        return mapper_pb2.MapResponse(intermediate_file_location = self.path, status = mapper_pb2.MapResponse.Status.SUCCESS)
+        return mapper_pb2.MapResponse(
+            intermediate_file_location=self.path, 
+            status=mapper_pb2.MapResponse.Status.SUCCESS
+        )

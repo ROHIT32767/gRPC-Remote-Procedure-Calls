@@ -20,49 +20,32 @@ class ReducerServiceServicer(reducer_pb2_grpc.ReducerServiceServicer):
         with open(path, "a+") as file:
             file.write(content + "\n")
     
-    def wordCount_reduce_function(self, key, values):
-        count = len(values)
-        final_output_path = self.path + "/" + self.reducer_name
-        self.file_write(final_output_path , key + " " + str(count))
-        return final_output_path
+    def word_count_function(self, key, values):
+        self.file_write(self.path + "/" + self.reducer_name , key + " " + str(len(values)))
+        return self.path + "/" + self.reducer_name
     
-    def invertedIndex_reduce_function(self, key, values):
-        values = list(set(values))
-        output = ""
-        for i in range(len(values)):
-            if i == 0:
-                output = str(values[i])
-            else:
-                output = output + ", "+ str(values[i])
-        final_output_path = self.path + "/" + self.reducer_name
-        self.file_write(final_output_path , key + " " + output)
-        return final_output_path
-
-    def _wordCountAndInvertedIndex(self, partition_files_path, query):
+    def inverted_index_function(self, key, values):
+        self.file_write(os.path.join(self.path, self.reducer_name), f"{key} {", ".join(map(str, set(values)))}")
+        return os.path.join(self.path, self.reducer_name)
+    
+    def reduce(self, request, context):
+        self.path = request.output_location
+        Path(self.path).mkdir(parents=True, exist_ok=True)
+        partition_files_path = request.partition_files_path
+        query = request.query
         self.shuffled_and_sorted_data = {}
         for file_path in partition_files_path:
             with open(file_path, "r") as file:
                 for line in file:
-                    data = line.split()
-                    key = data[0]
-                    value = int(data[1])
-                    if key in self.shuffled_and_sorted_data:
-                        self.shuffled_and_sorted_data[key].append(value)
-                    else:
-                        self.shuffled_and_sorted_data[key] = [value]
-
-        if query == 1:
-            for key, value in self.shuffled_and_sorted_data.items():
-                final_output_path = self.wordCount_reduce_function(key, value)
-        
-        elif query == 2:
-            for key, value in self.shuffled_and_sorted_data.items():
-                final_output_path = self.invertedIndex_reduce_function(key, value)
-
-        return reducer_pb2.ReduceResponse(status=reducer_pb2.ReduceResponse.Status.SUCCESS, output_file_path=final_output_path)
-
-    def reduce(self, request, context):
-        self.path = request.output_location
-        Path(self.path).mkdir(parents=True, exist_ok=True)
-        if request.query == 1 or request.query == 2:
-            return self._wordCountAndInvertedIndex(request.partition_files_path, request.query)
+                    key, value = line.split()
+                    value = int(value)
+                    self.shuffled_and_sorted_data.setdefault(key, []).append(value)
+        reduce_function = (
+            self.word_count_function if query == 1 else self.inverted_index_function
+        )
+        for key, value in self.shuffled_and_sorted_data.items():
+            final_output_path = reduce_function(key, value)
+        return reducer_pb2.ReduceResponse(
+            status=reducer_pb2.ReduceResponse.Status.SUCCESS,
+            output_file_path=final_output_path
+        )
