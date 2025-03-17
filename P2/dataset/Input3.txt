@@ -1,4 +1,1 @@
-Work is worship
-Worship is faith
-Faith is faith
-Work is not faith
+The creds we received today are of the old account, via which we can get our onedrive data and other Outlook emails (if missing from new account). You need to download onedrive data completely from that account (if you don't need that, then you can leave) by 10th. Later, you can upload that on the new account onedrive as per the storage policy and restrictions. You can also follow the syncing guide they have given in the email for the onedrive data migration.

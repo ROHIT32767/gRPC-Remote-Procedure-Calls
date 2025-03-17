@@ -1,2 +1,2 @@
-This is an apple
-Apple is red in color
+Now dfs(person) is either person, or min(dfs(child) for child in person). That is to say, the quietest person in the subtree is either the person itself, or the quietest person in some subtree of a child of person.
+We can cache values of dfs(person) as answer[person], when performing our post-order traversal of the graph. That way, we don't repeat work. This technique reduces a quadratic time algorithm down to linear time.
