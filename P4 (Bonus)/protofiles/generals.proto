@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package generals;
+
+service GeneralService {
+    rpc SendOrder (OrderRequest) returns (OrderResponse);
+}
+
+message OrderRequest {
+    int32 commander_id = 1;
+    int32 m = 2;
+    string order = 3;
+}
+
+message OrderResponse {
+    string order = 1;
+}
