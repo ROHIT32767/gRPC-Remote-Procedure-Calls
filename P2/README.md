@@ -30,7 +30,7 @@ cd P2; cd client; python3 master.py --query <query_number> --mappers <num_mapper
 - Word Count with 3 mappers and 2 reducers:
   ```bash
   cd P2; cd client; python3 master.py --query 1 --mappers 3 --reducers 2
-  ```
+  ```  
 - Inverted Index with 3 mappers and 2 reducers:
   ```bash
   cd P2; cd client; python3 master.py --query 2 --mappers 3 --reducers 2

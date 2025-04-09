@@ -15,6 +15,7 @@ cd P3; cd client; python3 client.py --port 50053
 payment bank1-1234 bank2-5678 100
 payment bank1-1234 bank2-6789 100
 
+
 # Gateway certificate
 openssl req -newkey rsa:4096 -nodes -keyout certificates/payment_gateway_server.key -out certificates/payment_gateway_server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost"
 
